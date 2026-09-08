@@ -202,7 +202,7 @@ class LSMStore:
         """Persist the memtable as a new immutable segment, then rotate the WAL."""
         if not self._memtable:
             return None
-        name = f"seg-{len(self._segments):06d}-{int(time.time() * 1000)}.eseg"
+        name = f"seg-{len(self._segments):06d}-{int(time.time() * 1000)}.aseg"
         writer = SegmentWriter(self.dir / name, self.dim)
         for rec in sorted(self._memtable.values(), key=lambda r: r.id):
             writer.add(rec.id, rec.seq, rec.vector, rec.metadata, rec.text, rec.deleted)
@@ -237,7 +237,7 @@ class LSMStore:
                         entry.seq,
                         entry.deleted,
                     )
-        name = f"seg-{len(self._segments):06d}-compact-{int(time.time() * 1000)}.eseg"
+        name = f"seg-{len(self._segments):06d}-compact-{int(time.time() * 1000)}.aseg"
         writer = SegmentWriter(self.dir / name, self.dim)
         for rec in sorted(merged.values(), key=lambda r: r.id):
             if rec.deleted:

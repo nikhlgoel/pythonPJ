@@ -1,12 +1,12 @@
 import numpy as np
 import pytest
 
-from embra.config import HNSWConfig
-from embra.index import HNSWIndex
-from embra.index.flat import FlatIndex, exact_knn
-from embra.index.space import ExactSpace
-from embra.types import Metric
-from embra.util.math import l2_normalize
+from annex.config import HNSWConfig
+from annex.index import HNSWIndex
+from annex.index.flat import FlatIndex, exact_knn
+from annex.index.space import ExactSpace
+from annex.types import Metric
+from annex.util.math import l2_normalize
 
 
 def build(data, **kw):

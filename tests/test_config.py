@@ -1,8 +1,8 @@
 import pytest
 
-from embra.config import CollectionConfig, HNSWConfig, PQConfig, StorageConfig
-from embra.errors import ConfigError
-from embra.types import IndexKind, Metric
+from annex.config import CollectionConfig, HNSWConfig, PQConfig, StorageConfig
+from annex.errors import ConfigError
+from annex.types import IndexKind, Metric
 
 
 def test_roundtrip():

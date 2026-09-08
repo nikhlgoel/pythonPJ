@@ -1,7 +1,7 @@
 import pytest
 
-from embra.text import BM25Index, Tokenizer
-from embra.text.tokenizer import stem
+from annex.text import BM25Index, Tokenizer
+from annex.text.tokenizer import stem
 
 
 def test_tokenizer_lowercases_and_splits():

@@ -5,10 +5,10 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from embra import Database
-from embra.bench.datasets import clustered_dataset, query_set, random_dataset
-from embra.bench.suite import exact_ground_truth, recall_at_k
-from embra.types import IndexKind, Metric
+from annex import Database
+from annex.bench.datasets import clustered_dataset, query_set, random_dataset
+from annex.bench.suite import exact_ground_truth, recall_at_k
+from annex.types import IndexKind, Metric
 
 
 @pytest.fixture(scope="module")

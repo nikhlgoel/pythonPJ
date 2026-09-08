@@ -9,14 +9,14 @@
     └── data/
         ├── MANIFEST.json        # segment list + last sequence number
         ├── wal.log              # append-only write-ahead log
-        └── seg-000000-*.eseg    # immutable segments
+        └── seg-000000-*.aseg    # immutable segments
 ```
 
 ## WAL frame
 
 ```
 offset  size  field
-0       4     magic  = "EWAL"
+0       4     magic  = "AWAL"
 4       2     version (u16)
 6       1     type    (1=PUT 2=DELETE 3=CHECKPOINT 4=TXN_COMMIT)
 7       1     flags
@@ -35,7 +35,7 @@ not just a corrupted payload.
 ## Segment file
 
 ```
-"ESEG" | u32 header-length | header-json | float32[n,dim] | jsonl entries
+"ASEG" | u32 header-length | header-json | float32[n,dim] | jsonl entries
 ```
 
 The header carries `dim`, record and vector counts, `min_seq`, `max_seq` and a

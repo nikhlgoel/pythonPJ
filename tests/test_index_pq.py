@@ -1,12 +1,12 @@
 import numpy as np
 import pytest
 
-from embra.config import PQConfig
-from embra.errors import IndexError_
-from embra.index.pq import ProductQuantizer, kmeans
-from embra.index.space import PQSpace
-from embra.types import Metric
-from embra.util.math import l2_normalize
+from annex.config import PQConfig
+from annex.errors import IndexError_
+from annex.index.pq import ProductQuantizer, kmeans
+from annex.index.space import PQSpace
+from annex.types import Metric
+from annex.util.math import l2_normalize
 
 
 @pytest.fixture(scope="module")
@@ -75,7 +75,7 @@ def test_symmetric_distance_is_non_negative_for_l2(data):
 
 
 def test_pq_space_reports_compression(data):
-    from embra.config import PQConfig as _PQ
+    from annex.config import PQConfig as _PQ
 
     space = PQSpace(32, Metric.COSINE, _PQ(subvectors=8, train_iters=5), keep_originals=False)
     space.train(data[:500])
@@ -87,10 +87,10 @@ def test_pq_space_reports_compression(data):
 
 
 def test_pq_rerank_improves_recall(tmp_path):
-    from embra import Database
-    from embra.bench.datasets import clustered_dataset, query_set
-    from embra.bench.suite import exact_ground_truth, recall_at_k
-    from embra.config import PQConfig as _PQ
+    from annex import Database
+    from annex.bench.datasets import clustered_dataset, query_set
+    from annex.bench.suite import exact_ground_truth, recall_at_k
+    from annex.config import PQConfig as _PQ
 
     data = clustered_dataset(1500, 32, clusters=12, seed=4)
     queries = query_set(data, 25, seed=5)

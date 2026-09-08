@@ -1,6 +1,6 @@
 """Rank fusion for hybrid (dense + lexical) retrieval.
 
-Dense cosine similarities and BM25 scores live on incomparable scales, so Embra
+Dense cosine similarities and BM25 scores live on incomparable scales, so Annex
 fuses *ranks*, not scores.  Reciprocal Rank Fusion (Cormack et al., 2009) is the
 default because it needs no tuning, no score calibration, and is robust when one
 retriever returns nothing at all::

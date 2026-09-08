@@ -1,4 +1,4 @@
-"""Simulate a 5-node Embra cluster: elect a leader, replicate writes, survive a
+"""Simulate a 5-node Annex cluster: elect a leader, replicate writes, survive a
 network partition, and verify every replica converges.
 
     python examples/replicated_cluster.py
@@ -11,23 +11,23 @@ import tempfile
 
 import numpy as np
 
-import embra
-from embra.cluster import ClusterSimulator, RaftNode
-from embra.cluster.state_machine import CollectionStateMachine, encode_command
-from embra.util.math import l2_normalize
+import annex
+from annex.cluster import ClusterSimulator, RaftNode
+from annex.cluster.state_machine import CollectionStateMachine, encode_command
+from annex.util.math import l2_normalize
 
 DIM = 16
 NODE_IDS = ["n1", "n2", "n3", "n4", "n5"]
 
 
 def main() -> None:
-    workdir = tempfile.mkdtemp(prefix="embra-cluster-")
+    workdir = tempfile.mkdtemp(prefix="annex-cluster-")
     rng = np.random.default_rng(0)
 
     machines: dict[str, CollectionStateMachine] = {}
     nodes: list[RaftNode] = []
     for i, node_id in enumerate(NODE_IDS):
-        coll = embra.Database(f"{workdir}/{node_id}").create_collection("kb", dim=DIM)
+        coll = annex.Database(f"{workdir}/{node_id}").create_collection("kb", dim=DIM)
         machines[node_id] = CollectionStateMachine(coll)
         nodes.append(RaftNode(node_id, NODE_IDS, seed=i * 17 + 3, apply_fn=machines[node_id]))
 

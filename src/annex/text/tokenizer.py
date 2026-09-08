@@ -34,7 +34,7 @@ def stem(token: str) -> str:
 
 
 class Tokenizer:
-    """Configurable analyzer used by :class:`~embra.text.bm25.BM25Index`."""
+    """Configurable analyzer used by :class:`~annex.text.bm25.BM25Index`."""
 
     __slots__ = ("lowercase", "stopwords", "use_stemmer", "min_length")
 

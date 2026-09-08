@@ -1,4 +1,4 @@
-"""Binding a replicated Raft log to an Embra collection.
+"""Binding a replicated Raft log to an Annex collection.
 
 A command is a small JSON-serialisable dict; applying it to the local collection
 is deterministic, so every replica that applies the same committed prefix ends

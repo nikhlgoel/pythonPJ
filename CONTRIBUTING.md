@@ -26,11 +26,11 @@ make bench       # recall / latency suite
 
 | Path | Contents |
 |---|---|
-| `src/embra/index/` | HNSW, flat, PQ, vector spaces |
-| `src/embra/storage/` | WAL, segments, LSM store, codec |
-| `src/embra/query/` | Filter DSL, fusion, planner |
-| `src/embra/text/` | Tokeniser, BM25 |
-| `src/embra/cluster/` | Raft, simulator, state machine |
-| `src/embra/server/` | FastAPI app and schemas |
-| `src/embra/bench/` | Datasets and benchmark harness |
+| `src/annex/index/` | HNSW, flat, PQ, vector spaces |
+| `src/annex/storage/` | WAL, segments, LSM store, codec |
+| `src/annex/query/` | Filter DSL, fusion, planner |
+| `src/annex/text/` | Tokeniser, BM25 |
+| `src/annex/cluster/` | Raft, simulator, state machine |
+| `src/annex/server/` | FastAPI app and schemas |
+| `src/annex/bench/` | Datasets and benchmark harness |
 | `docs/` | Architecture, algorithms, storage format, benchmarks, roadmap |

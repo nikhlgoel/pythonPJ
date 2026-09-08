@@ -1,15 +1,15 @@
-"""``embra`` command line interface.
+"""``annex`` command line interface.
 
 Examples
 --------
 ::
 
-    embra create papers --dim 384 --index hnsw
-    embra ingest papers documents.jsonl --text-field abstract
-    embra query papers --text "graph neural networks" --k 5
-    embra stats papers
-    embra bench --n 20000 --dim 128
-    embra serve --port 8080
+    annex create papers --dim 384 --index hnsw
+    annex ingest papers documents.jsonl --text-field abstract
+    annex query papers --text "graph neural networks" --k 5
+    annex stats papers
+    annex bench --n 20000 --dim 128
+    annex serve --port 8080
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ from rich.table import Table
 from . import __version__
 from .db import Database
 
-app = typer.Typer(add_completion=False, help="Embra vector search engine")
+app = typer.Typer(add_completion=False, help="Annex vector search engine")
 console = Console()
 
 
@@ -33,13 +33,13 @@ def _db(path: str) -> Database:
     return Database(path)
 
 
-DATA_OPT = typer.Option(".embra-data", "--data", "-d", help="database directory")
+DATA_OPT = typer.Option(".annex-data", "--data", "-d", help="database directory")
 
 
 @app.command()
 def version() -> None:
     """Print the engine version."""
-    console.print(f"embra {__version__}")
+    console.print(f"annex {__version__}")
 
 
 @app.command("list")

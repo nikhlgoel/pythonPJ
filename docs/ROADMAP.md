@@ -48,5 +48,5 @@ and the reason it matters commercially.
 
 * Being faster than FAISS in pure Python. The artefact here is the design and its
   testability, not the constant factor.
-* An embedding model. Embra indexes vectors; producing them is someone else's
+* An embedding model. Annex indexes vectors; producing them is someone else's
   job.

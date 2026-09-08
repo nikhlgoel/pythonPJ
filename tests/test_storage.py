@@ -3,10 +3,10 @@ import struct
 import numpy as np
 import pytest
 
-from embra.config import StorageConfig
-from embra.errors import CorruptionError
-from embra.storage import LSMStore, WriteAheadLog
-from embra.storage.codec import (
+from annex.config import StorageConfig
+from annex.errors import CorruptionError
+from annex.storage import LSMStore, WriteAheadLog
+from annex.storage.codec import (
     Frame,
     FrameType,
     decode_frame,
@@ -14,7 +14,7 @@ from embra.storage.codec import (
     encode_frame,
     encode_put,
 )
-from embra.storage.segment import Segment, SegmentWriter
+from annex.storage.segment import Segment, SegmentWriter
 
 
 def test_frame_roundtrip():
@@ -74,11 +74,11 @@ def test_wal_truncates_torn_tail(tmp_path):
 
 
 def test_segment_roundtrip(tmp_path):
-    writer = SegmentWriter(tmp_path / "s.eseg", 3)
+    writer = SegmentWriter(tmp_path / "s.aseg", 3)
     writer.add("a", 1, np.ones(3, "float32"), {"x": 1}, "text a")
     writer.add("b", 2, None, {}, None, deleted=True)
     writer.finish()
-    seg = Segment(tmp_path / "s.eseg")
+    seg = Segment(tmp_path / "s.aseg")
     assert len(seg) == 2
     assert seg.max_seq == 2
     entries = {e.id: e for e in seg}
@@ -87,7 +87,7 @@ def test_segment_roundtrip(tmp_path):
 
 
 def test_segment_detects_corrupt_vector_block(tmp_path):
-    path = tmp_path / "s.eseg"
+    path = tmp_path / "s.aseg"
     writer = SegmentWriter(path, 2)
     writer.add("a", 1, np.ones(2, "float32"), {}, None)
     writer.finish()

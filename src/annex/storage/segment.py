@@ -23,7 +23,7 @@ import numpy as np
 
 from ..errors import CorruptionError
 
-_MAGIC = b"ESEG"
+_MAGIC = b"ASEG"
 _HDR_LEN = struct.Struct("<4sI")
 
 
@@ -111,7 +111,7 @@ class Segment:
         raw = self.path.read_bytes()
         magic, hlen = _HDR_LEN.unpack_from(raw, 0)
         if magic != _MAGIC:
-            raise CorruptionError(f"{self.path}: not an Embra segment")
+            raise CorruptionError(f"{self.path}: not an Annex segment")
         off = _HDR_LEN.size
         self.header = json.loads(raw[off : off + hlen])
         off += hlen

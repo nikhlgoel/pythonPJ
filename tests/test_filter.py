@@ -1,7 +1,7 @@
 import pytest
 
-from embra.errors import QueryError
-from embra.query.filter import compile_filter
+from annex.errors import QueryError
+from annex.query.filter import compile_filter
 
 META = {"year": 2021, "venue": "NeurIPS", "tags": ["ml", "ann"], "author": {"name": "ada"}}
 

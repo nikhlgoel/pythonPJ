@@ -4,7 +4,7 @@ Endpoints are versioned under ``/v1``.  Everything the engine can do locally is
 reachable over HTTP, including ``EXPLAIN``-style query plans, snapshots stats
 and maintenance operations.
 
-Authentication is an optional bearer token (``EMBRA_API_KEY``); when the
+Authentication is an optional bearer token (``ANNEX_API_KEY``); when the
 variable is unset the server runs open, which is the right default for a local
 embedded deployment and the wrong one for anything else - the startup log says
 so explicitly.
@@ -23,7 +23,7 @@ from fastapi.responses import JSONResponse
 
 from .. import __version__
 from ..db import Database
-from ..errors import ConflictError, EmbraError, NotFoundError, QueryError, SchemaError
+from ..errors import AnnexError, ConflictError, NotFoundError, QueryError, SchemaError
 from .schemas import (
     CreateCollectionRequest,
     HitOut,
@@ -33,7 +33,7 @@ from .schemas import (
     UpsertResponse,
 )
 
-log = logging.getLogger("embra.server")
+log = logging.getLogger("annex.server")
 
 _STATUS = {
     NotFoundError: 404,
@@ -46,14 +46,14 @@ _STATUS = {
 def create_app(db: Database, *, api_key: str | None = None) -> FastAPI:
     """Build an ASGI app serving ``db``."""
     app = FastAPI(
-        title="Embra",
+        title="Annex",
         version=__version__,
         description="Embedded, transactional, vector-native search engine.",
     )
     app.state.db = db
-    app.state.api_key = api_key or os.getenv("EMBRA_API_KEY")
+    app.state.api_key = api_key or os.getenv("ANNEX_API_KEY")
     if not app.state.api_key:
-        log.warning("EMBRA_API_KEY is unset - the API is unauthenticated")
+        log.warning("ANNEX_API_KEY is unset - the API is unauthenticated")
 
     def require_auth(authorization: str | None = Header(default=None)) -> None:
         expected = app.state.api_key
@@ -74,8 +74,8 @@ def create_app(db: Database, *, api_key: str | None = None) -> FastAPI:
         response.headers["x-response-time-ms"] = f"{(time.perf_counter() - started) * 1000:.2f}"
         return response
 
-    @app.exception_handler(EmbraError)
-    async def engine_error(_request: Request, exc: EmbraError):
+    @app.exception_handler(AnnexError)
+    async def engine_error(_request: Request, exc: AnnexError):
         status = next((s for t, s in _STATUS.items() if isinstance(exc, t)), 500)
         return JSONResponse(
             status_code=status,
@@ -209,6 +209,6 @@ def create_app(db: Database, *, api_key: str | None = None) -> FastAPI:
 
 
 def create_default_app() -> FastAPI:
-    """Factory for ``uvicorn embra.server.app:create_default_app --factory``."""
-    logging.basicConfig(level=os.getenv("EMBRA_LOG_LEVEL", "INFO"))
-    return create_app(Database(os.getenv("EMBRA_DATA_DIR", ".embra-data")))
+    """Factory for ``uvicorn annex.server.app:create_default_app --factory``."""
+    logging.basicConfig(level=os.getenv("ANNEX_LOG_LEVEL", "INFO"))
+    return create_app(Database(os.getenv("ANNEX_DATA_DIR", ".annex-data")))

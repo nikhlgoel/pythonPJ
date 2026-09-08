@@ -77,7 +77,7 @@ and re-indexing are `O(terms in document)` rather than a full rebuild.
 ## 4. Hybrid fusion
 
 Cosine similarity ∈ `[-1, 1]` and BM25 ∈ `[0, ∞)` are not comparable, and BM25's
-scale shifts with corpus statistics. Embra therefore fuses **ranks**:
+scale shifts with corpus statistics. Annex therefore fuses **ranks**:
 
 $$\text{RRF}(d) = \sum_r \frac{w_r}{K + \text{rank}_r(d)}, \qquad K = 60$$
 

@@ -7,7 +7,7 @@ Measures, for each configuration:
 * **throughput** (queries/second, single-threaded),
 * **build time** and resident index memory.
 
-Run it with ``python -m embra.bench.suite --n 50000 --dim 128``.
+Run it with ``python -m annex.bench.suite --n 50000 --dim 128``.
 """
 
 from __future__ import annotations
@@ -215,7 +215,7 @@ def benchmark_index_prebuilt(
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Embra benchmark suite")
+    parser = argparse.ArgumentParser(description="Annex benchmark suite")
     parser.add_argument("--n", type=int, default=20_000)
     parser.add_argument("--dim", type=int, default=128)
     parser.add_argument("--queries", type=int, default=200)
@@ -229,7 +229,7 @@ def main(argv: list[str] | None = None) -> int:
         args.n, args.dim, args.queries, args.k,
         seed=args.seed, include_flat=not args.no_flat,
     )
-    print(f"\nEmbra benchmark - n={args.n} dim={args.dim} queries={args.queries} k={args.k}\n")
+    print(f"\nAnnex benchmark - n={args.n} dim={args.dim} queries={args.queries} k={args.k}\n")
     for res in results:
         print(res.row())
     if args.out:

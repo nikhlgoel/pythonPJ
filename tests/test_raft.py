@@ -1,8 +1,8 @@
 import pytest
 
-from embra.cluster import ClusterSimulator, RaftNode, Role
-from embra.cluster.raft import AppendEntries, LogEntry, Message, RequestVote
-from embra.cluster.state_machine import CollectionStateMachine, encode_command
+from annex.cluster import ClusterSimulator, RaftNode, Role
+from annex.cluster.raft import AppendEntries, LogEntry, Message, RequestVote
+from annex.cluster.state_machine import CollectionStateMachine, encode_command
 
 
 def cluster(n=5, **kw):
@@ -167,7 +167,7 @@ def test_state_machine_rejects_unknown_ops(db):
 
 
 def test_replicated_writes_reach_every_replica(tmp_path, vectors):
-    from embra import Database
+    from annex import Database
 
     ids = ["n1", "n2", "n3"]
     machines = {}

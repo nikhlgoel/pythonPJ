@@ -1,4 +1,4 @@
-<h1 align="center">Embra</h1>
+<h1 align="center">Annex</h1>
 
 <p align="center">
   <b>An embedded, transactional, vector-native search engine — written from scratch in Python.</b><br>
@@ -10,7 +10,7 @@
 ## Why this exists
 
 Vector databases are usually consumed as a black box: you call `add()` and `query()`
-and hope the recall is good. Embra is the opposite — it is a *readable*
+and hope the recall is good. Annex is the opposite — it is a *readable*
 implementation of every layer that a production vector database actually needs,
 built without FAISS, without hnswlib, without SQLite, and without a single
 `pip install` beyond NumPy.
@@ -19,21 +19,21 @@ It is a real engine, not a demo:
 
 | Layer | What is implemented | Where |
 |---|---|---|
-| **ANN index** | HNSW with exponential level assignment, the Algorithm-4 neighbour-selection heuristic, bidirectional pruning, batched distance evaluation, tombstoned deletes, predicate-filtered traversal | [`index/hnsw.py`](src/embra/index/hnsw.py) |
-| **Compression** | Product quantisation with k-means++ codebooks, asymmetric (ADC) and symmetric (SDC) distance computation, exact reranking | [`index/pq.py`](src/embra/index/pq.py) |
-| **Storage** | Write-ahead log with CRC32 framing and torn-tail truncation, immutable segments written atomically, memtable flush, full compaction | [`storage/`](src/embra/storage) |
-| **Concurrency** | MVCC — every update creates a new version; snapshot reads are an integer comparison; vacuum uses an oldest-snapshot horizon | [`mvcc.py`](src/embra/mvcc.py) |
-| **Transactions** | Optimistic, buffered, first-committer-wins conflict detection | [`db.py`](src/embra/db.py) |
-| **Lexical search** | Incremental BM25 inverted index with deletes and a deterministic analyzer | [`text/bm25.py`](src/embra/text/bm25.py) |
-| **Query layer** | MongoDB-style filter DSL compiled to a closure, reciprocal rank fusion, **cost-based planner that picks between exact scan / graph traversal / hybrid** | [`query/`](src/embra/query) |
-| **Distribution** | Raft — leader election, log matching, the leader-completeness commit rule — implemented as a *pure, tick-driven* state machine so a 5-node partition is a unit test | [`cluster/raft.py`](src/embra/cluster/raft.py) |
-| **Serving** | FastAPI HTTP API, Typer CLI, benchmark harness reporting recall@k + p50/p95/p99 | [`server/`](src/embra/server), [`cli.py`](src/embra/cli.py), [`bench/`](src/embra/bench) |
+| **ANN index** | HNSW with exponential level assignment, the Algorithm-4 neighbour-selection heuristic, bidirectional pruning, batched distance evaluation, tombstoned deletes, predicate-filtered traversal | [`index/hnsw.py`](src/annex/index/hnsw.py) |
+| **Compression** | Product quantisation with k-means++ codebooks, asymmetric (ADC) and symmetric (SDC) distance computation, exact reranking | [`index/pq.py`](src/annex/index/pq.py) |
+| **Storage** | Write-ahead log with CRC32 framing and torn-tail truncation, immutable segments written atomically, memtable flush, full compaction | [`storage/`](src/annex/storage) |
+| **Concurrency** | MVCC — every update creates a new version; snapshot reads are an integer comparison; vacuum uses an oldest-snapshot horizon | [`mvcc.py`](src/annex/mvcc.py) |
+| **Transactions** | Optimistic, buffered, first-committer-wins conflict detection | [`db.py`](src/annex/db.py) |
+| **Lexical search** | Incremental BM25 inverted index with deletes and a deterministic analyzer | [`text/bm25.py`](src/annex/text/bm25.py) |
+| **Query layer** | MongoDB-style filter DSL compiled to a closure, reciprocal rank fusion, **cost-based planner that picks between exact scan / graph traversal / hybrid** | [`query/`](src/annex/query) |
+| **Distribution** | Raft — leader election, log matching, the leader-completeness commit rule — implemented as a *pure, tick-driven* state machine so a 5-node partition is a unit test | [`cluster/raft.py`](src/annex/cluster/raft.py) |
+| **Serving** | FastAPI HTTP API, Typer CLI, benchmark harness reporting recall@k + p50/p95/p99 | [`server/`](src/annex/server), [`cli.py`](src/annex/cli.py), [`bench/`](src/annex/bench) |
 
 ## Install
 
 ```bash
 git clone https://github.com/nikhlgoel/pythonpj.git && cd pythonpj
-make install          # creates .venv and installs embra[all]
+make install          # creates .venv and installs annex[all]
 make test             # full test suite
 make bench            # recall / latency benchmark
 ```
@@ -42,9 +42,9 @@ make bench            # recall / latency benchmark
 
 ```python
 import numpy as np
-import embra
+import annex
 
-db = embra.Database("./data")
+db = annex.Database("./data")
 papers = db.create_collection("papers", dim=384, metric="cosine", index="hnsw")
 
 papers.upsert(
@@ -90,18 +90,18 @@ with papers.transaction() as txn:        # atomic; rolls back on exception
 ```
 
 That decision is the point: with a 10 %-selective filter a graph walk wastes
-most of its distance computations on rejected nodes, so Embra pre-filters and
+most of its distance computations on rejected nodes, so Annex pre-filters and
 scans — and tells you it did.
 
 ## CLI
 
 ```bash
-embra create papers --dim 384 --index hnsw
-embra ingest papers corpus.jsonl
-embra query  papers --text "graph neural networks" -k 5
-embra stats  papers
-embra bench  --n 50000 --dim 128
-embra serve  --port 8080
+annex create papers --dim 384 --index hnsw
+annex ingest papers corpus.jsonl
+annex query  papers --text "graph neural networks" -k 5
+annex stats  papers
+annex bench  --n 50000 --dim 128
+annex serve  --port 8080
 ```
 
 ## HTTP API

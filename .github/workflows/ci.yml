@@ -31,7 +31,7 @@ jobs:
       - name: Type check
         run: mypy
       - name: Test
-        run: pytest -q --cov=embra --cov-report=term-missing --cov-fail-under=80
+        run: pytest -q --cov=annex --cov-report=term-missing --cov-fail-under=80
 
   smoke:
     runs-on: ubuntu-latest
@@ -47,10 +47,10 @@ jobs:
           python examples/rag_pipeline.py
           python examples/replicated_cluster.py
       - name: Benchmark (small)
-        run: python -m embra.bench --n 3000 --dim 64 --queries 50
+        run: python -m annex.bench --n 3000 --dim 64 --queries 50
       - name: CLI
         run: |
-          embra create demo --dim 8 --data /tmp/ci-data
+          annex create demo --dim 8 --data /tmp/ci-data
           python - <<'PY'
           import json, numpy as np
           rng = np.random.default_rng(0)
@@ -63,6 +63,6 @@ jobs:
                       "text": f"document {i}",
                   }) + "\n")
           PY
-          embra ingest demo /tmp/docs.jsonl --data /tmp/ci-data
-          embra query demo --text "document 7" -k 3 --data /tmp/ci-data
-          embra stats demo --data /tmp/ci-data
+          annex ingest demo /tmp/docs.jsonl --data /tmp/ci-data
+          annex query demo --text "document 7" -k 3 --data /tmp/ci-data
+          annex stats demo --data /tmp/ci-data

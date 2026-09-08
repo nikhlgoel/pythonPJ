@@ -11,7 +11,7 @@ Frame layout (little endian)::
 
 The CRC32 covers the payload *and* the header prefix, so both a truncated write
 and a bit-flip in the header are caught.  ``MAGIC`` lets the reader resynchronise
-and lets us reject files that are not Embra WALs at all.
+and lets us reject files that are not Annex WALs at all.
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ import numpy as np
 
 from ..errors import CorruptionError
 
-MAGIC = b"EWAL"
+MAGIC = b"AWAL"
 VERSION = 1
 _HEADER = struct.Struct("<4sHBBQII")
 HEADER_SIZE = _HEADER.size

@@ -1,8 +1,8 @@
 import pytest
 
-from embra.query.filter import compile_filter
-from embra.query.fusion import reciprocal_rank_fusion, weighted_fusion
-from embra.query.planner import QueryPlanner, Strategy
+from annex.query.filter import compile_filter
+from annex.query.fusion import reciprocal_rank_fusion, weighted_fusion
+from annex.query.planner import QueryPlanner, Strategy
 
 
 def test_rrf_rewards_agreement():

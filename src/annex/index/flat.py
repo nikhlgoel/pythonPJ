@@ -1,7 +1,7 @@
 """Exhaustive (brute-force) index.
 
 Exact by construction, and therefore the ground truth against which the HNSW
-recall numbers in :mod:`embra.bench` are measured.  It is also the right index
+recall numbers in :mod:`annex.bench` are measured.  It is also the right index
 for small collections, where a single vectorised pass beats any graph walk.
 """
 

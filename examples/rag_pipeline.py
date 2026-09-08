@@ -1,4 +1,4 @@
-"""End-to-end retrieval-augmented-generation style pipeline on Embra.
+"""End-to-end retrieval-augmented-generation style pipeline on Annex.
 
 Runs with no external services and no embedding model: documents are embedded
 with a deterministic hashing vectoriser so the example is reproducible offline.
@@ -15,9 +15,9 @@ from dataclasses import dataclass
 
 import numpy as np
 
-import embra
-from embra.text import Tokenizer
-from embra.util.math import l2_normalize
+import annex
+from annex.text import Tokenizer
+from annex.util.math import l2_normalize
 
 CORPUS = [
     ("hnsw", "graph-index", 2016,
@@ -75,10 +75,10 @@ def build_prompt(question: str, hits) -> str:
 
 
 def main() -> None:
-    workdir = tempfile.mkdtemp(prefix="embra-rag-")
+    workdir = tempfile.mkdtemp(prefix="annex-rag-")
     embed = HashingEmbedder(dim=128)
 
-    db = embra.Database(workdir)
+    db = annex.Database(workdir)
     kb = db.create_collection("knowledge", dim=embed.dim, metric="cosine", index="hnsw")
 
     print(f"indexing {len(CORPUS)} documents ...")

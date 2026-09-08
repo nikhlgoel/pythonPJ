@@ -354,7 +354,7 @@ class Collection:
             Query string.  Supplying both ``vector`` and ``text`` runs a hybrid
             query fused with reciprocal rank fusion.
         filter:
-            Metadata filter in the DSL of :mod:`embra.query.filter`.
+            Metadata filter in the DSL of :mod:`annex.query.filter`.
         ef:
             Override the HNSW beam width for this query (recall/latency dial).
         snapshot:
@@ -505,7 +505,7 @@ class Collection:
 class Database:
     """A directory of collections."""
 
-    def __init__(self, path: str | Path = ".embra-data") -> None:
+    def __init__(self, path: str | Path = ".annex-data") -> None:
         self.path = Path(path)
         self.path.mkdir(parents=True, exist_ok=True)
         self._collections: dict[str, Collection] = {}

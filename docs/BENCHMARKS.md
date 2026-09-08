@@ -5,8 +5,8 @@
 ```bash
 make bench
 # or
-python -m embra.bench --n 50000 --dim 128 --queries 500 --out results.json
-embra bench --n 20000 --dim 128
+python -m annex.bench --n 50000 --dim 128 --queries 500 --out results.json
+annex bench --n 20000 --dim 128
 ```
 
 ## What is measured

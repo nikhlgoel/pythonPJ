@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import numpy as np
 
-from embra import Database
-from embra.cluster import ClusterSimulator, RaftNode
-from embra.cluster.state_machine import CollectionStateMachine, encode_command
-from embra.config import StorageConfig
-from embra.storage.codec import Frame, FrameType, encode_frame
-from embra.util.math import l2_normalize
+from annex import Database
+from annex.cluster import ClusterSimulator, RaftNode
+from annex.cluster.state_machine import CollectionStateMachine, encode_command
+from annex.config import StorageConfig
+from annex.storage.codec import Frame, FrameType, encode_frame
+from annex.util.math import l2_normalize
 
 CORPUS = [
     ("nn", "neural networks learn hierarchical representations from data"),

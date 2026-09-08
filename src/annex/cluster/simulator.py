@@ -1,6 +1,6 @@
 """Deterministic cluster simulator.
 
-Drives a set of :class:`~embra.cluster.raft.RaftNode` instances through logical
+Drives a set of :class:`~annex.cluster.raft.RaftNode` instances through logical
 time, with controllable message loss, latency and network partitions.  This is
 how the replication tests exercise leader election, log convergence and
 split-brain avoidance without sleeping or spawning threads.

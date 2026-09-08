@@ -4,8 +4,8 @@ import pytest
 fastapi = pytest.importorskip("fastapi")
 from fastapi.testclient import TestClient  # noqa: E402
 
-from embra import Database  # noqa: E402
-from embra.server.app import create_app  # noqa: E402
+from annex import Database  # noqa: E402
+from annex.server.app import create_app  # noqa: E402
 
 
 @pytest.fixture

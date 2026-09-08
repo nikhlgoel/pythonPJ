@@ -3,8 +3,8 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from embra import Database
-from embra.util.math import l2_normalize
+from annex import Database
+from annex.util.math import l2_normalize
 
 
 @pytest.fixture

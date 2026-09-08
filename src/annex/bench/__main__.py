@@ -1,4 +1,4 @@
-"""``python -m embra.bench`` entry point."""
+"""``python -m annex.bench`` entry point."""
 
 from .suite import main
 

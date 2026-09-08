@@ -1,10 +1,10 @@
 import numpy as np
 import pytest
 
-from embra import Database
-from embra.errors import ConflictError, NotFoundError, SchemaError, TransactionError
-from embra.types import IndexKind, Metric
-from embra.util.math import l2_normalize
+from annex import Database
+from annex.errors import ConflictError, NotFoundError, SchemaError, TransactionError
+from annex.types import IndexKind, Metric
+from annex.util.math import l2_normalize
 
 
 def fill(coll, vectors, *, texts=True):

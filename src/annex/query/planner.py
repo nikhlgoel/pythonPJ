@@ -9,7 +9,7 @@ in two common regimes:
   wastes almost all of its distance computations on rejected nodes, and a
   pre-filtered exact scan is both faster *and* exact.
 
-So Embra estimates the cost of each strategy and picks one, then reports the
+So Annex estimates the cost of each strategy and picks one, then reports the
 decision back to the caller in ``SearchResult.plan`` - the query plan is a
 first-class, inspectable object, like ``EXPLAIN`` in a relational database.
 

@@ -2,7 +2,7 @@
 
 ```
                          ┌──────────────────────────────────────────┐
-   client (py / http)    │              embra.Database              │
+   client (py / http)    │              annex.Database              │
         │                └──────────────────────────────────────────┘
         ▼                                   │
 ┌───────────────┐                           ▼
@@ -27,7 +27,7 @@
 
 ## Layers
 
-### 1. Storage (`embra/storage`)
+### 1. Storage (`annex/storage`)
 
 | File | Responsibility |
 |---|---|
@@ -45,7 +45,7 @@ WAL tail. Higher sequence numbers win. A frame that fails its CRC ends replay an
 the file is truncated at that offset — a partially written frame was never
 acknowledged, so discarding it is correct.
 
-### 2. Vectors (`embra/index`)
+### 2. Vectors (`annex/index`)
 
 Two orthogonal abstractions:
 
@@ -62,7 +62,7 @@ Internal keys are dense integers. That is deliberate: it lets the graph, the
 BM25 index and the MVCC table share one address space and lets every distance
 computation be a NumPy fancy-index rather than a dict lookup.
 
-### 3. Concurrency (`embra/mvcc.py`)
+### 3. Concurrency (`annex/mvcc.py`)
 
 An update never mutates a vector. It allocates a new key and stamps the previous
 version `dead = commit_seq`:
@@ -77,7 +77,7 @@ evaluate inside the graph traversal, which is why readers never block writers an
 why an old snapshot keeps returning the old vector. `vacuum()` reclaims versions
 below the oldest open snapshot (the PostgreSQL horizon rule).
 
-### 4. Query (`embra/query`)
+### 4. Query (`annex/query`)
 
 1. `compile_filter()` turns the filter DSL into a closure plus selectivity stats.
 2. `QueryPlanner` estimates the cost of an exact scan versus a graph traversal
@@ -86,7 +86,7 @@ below the oldest open snapshot (the PostgreSQL horizon rule).
 4. `reciprocal_rank_fusion()` merges the two ranked lists.
 5. The chosen plan is returned to the caller in `SearchResult.plan`.
 
-### 5. Replication (`embra/cluster`)
+### 5. Replication (`annex/cluster`)
 
 `RaftNode` is a pure state machine: `tick(now)` and `handle(message, now)` return
 the messages to send. No threads, no clocks, no sockets. `ClusterSimulator`

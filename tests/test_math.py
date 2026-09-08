@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from embra.errors import SchemaError
-from embra.types import Metric
-from embra.util.math import coerce_vectors, distance_matrix, l2_normalize, validate_vector
+from annex.errors import SchemaError
+from annex.types import Metric
+from annex.util.math import coerce_vectors, distance_matrix, l2_normalize, validate_vector
 
 
 def test_l2_normalize_is_unit_norm(rng):

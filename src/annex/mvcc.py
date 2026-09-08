@@ -1,6 +1,6 @@
 """Multi-version concurrency control.
 
-Embra never mutates a stored vector in place.  An update allocates a **new
+Annex never mutates a stored vector in place.  An update allocates a **new
 internal key** and marks the previous one dead at the committing sequence
 number::
 
