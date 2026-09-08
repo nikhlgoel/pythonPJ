@@ -26,7 +26,7 @@ It is a real engine, not a demo:
 | **Transactions** | Optimistic, buffered, first-committer-wins conflict detection | [`db.py`](src/annex/db.py) |
 | **Lexical search** | Incremental BM25 inverted index with deletes and a deterministic analyzer | [`text/bm25.py`](src/annex/text/bm25.py) |
 | **Query layer** | MongoDB-style filter DSL compiled to a closure, reciprocal rank fusion, **cost-based planner that picks between exact scan / graph traversal / hybrid** | [`query/`](src/annex/query) |
-| **Distribution** | Raft — leader election, log matching, the leader-completeness commit rule — implemented as a *pure, tick-driven* state machine so a 5-node partition is a unit test | [`cluster/raft.py`](src/annex/cluster/raft.py) |
+| **Distribution** | Raft — leader election, log matching, the leader-completeness commit rule, log compaction with `InstallSnapshot`, and one-at-a-time membership changes — implemented as a *pure, tick-driven* state machine so a 5-node partition is a unit test, then bound to a live HTTP transport | [`cluster/`](src/annex/cluster) |
 | **Serving** | FastAPI HTTP API, Typer CLI, benchmark harness reporting recall@k + p50/p95/p99 | [`server/`](src/annex/server), [`cli.py`](src/annex/cli.py), [`bench/`](src/annex/bench) |
 
 ## Install
@@ -67,6 +67,18 @@ for hit in result:
 
 print(result.plan)   # EXPLAIN: which strategy the planner chose, and why
 ```
+
+### Running a cluster
+
+```bash
+python examples/http_cluster.py --id n1 --port 9101   # three terminals,
+python examples/http_cluster.py --id n2 --port 9102   # three processes
+python examples/http_cluster.py --id n3 --port 9103
+curl -s localhost:9101/v1/raft/status | python -m json.tool
+```
+
+Each node serves the ordinary API plus `/v1/raft/message`. Writes to a follower
+are refused with the current leader's id.
 
 ### Snapshots and transactions
 
@@ -156,8 +168,9 @@ exact scan beats the graph outright — which is why the planner exists.
 
 * This is pure Python + NumPy. Throughput is one to two orders of magnitude
   below a SIMD C++ engine; the design, not the constant factor, is the artefact.
-* Raft is implemented and simulated deterministically, but the HTTP transport
-  binding it to a live multi-process cluster is future work
+* Raft covers election, replication, compaction and membership changes, and runs
+  over a live HTTP transport (`examples/http_cluster.py`); pre-vote, leadership
+  transfer and read-index leases are not implemented
   ([roadmap](docs/ROADMAP.md)).
 * Single-writer per collection (a lock); concurrent *readers* scale freely.
 

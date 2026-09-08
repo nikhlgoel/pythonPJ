@@ -14,26 +14,43 @@ keeps identical across replicas.
 from .raft import (
     AppendEntries,
     AppendEntriesReply,
+    InstallSnapshot,
+    InstallSnapshotReply,
     LogEntry,
     Message,
     RaftNode,
     RequestVote,
     RequestVoteReply,
     Role,
+    config_command,
+    is_config,
 )
+from .service import RaftService
 from .simulator import ClusterSimulator
 from .state_machine import CollectionStateMachine, encode_command
+from .transport import HttpTransport, InProcessTransport, Transport
+from .wire import decode_message, encode_message
 
 __all__ = [
     "AppendEntries",
     "AppendEntriesReply",
     "ClusterSimulator",
     "CollectionStateMachine",
+    "HttpTransport",
+    "InProcessTransport",
+    "InstallSnapshot",
+    "InstallSnapshotReply",
     "LogEntry",
     "Message",
     "RaftNode",
+    "RaftService",
     "RequestVote",
     "RequestVoteReply",
     "Role",
+    "Transport",
+    "config_command",
+    "decode_message",
     "encode_command",
+    "encode_message",
+    "is_config",
 ]

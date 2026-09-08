@@ -95,7 +95,27 @@ supplies a virtual network with latency, loss and partitions, so
 healing"* is an ordinary, deterministic unit test.
 
 `CollectionStateMachine` applies committed commands to a local collection, making
-a collection the replicated state machine.
+a collection the replicated state machine. It also serialises and restores that
+collection, which is the payload of `InstallSnapshot`.
+
+Three pieces sit above the core:
+
+| Module | Responsibility |
+|---|---|
+| `wire.py` | The only place that turns RPC dataclasses into JSON and back |
+| `transport.py` | `InProcessTransport` (direct hand-off) and `HttpTransport` (POST to a peer's `/v1/raft/message`); an unreachable peer is a *dropped packet*, never an exception |
+| `service.py` | `RaftService` - the thread-safe shell that owns the cluster layer's only lock, pumps outbound envelopes and feeds replies back |
+
+**Log compaction.** `RaftNode.compact()` folds the applied prefix into a
+state-machine snapshot and discards it; log indices are stored absolutely and
+resolved against `snapshot_index`, so nothing else in the protocol changes. A
+follower that has fallen behind the retained log is caught up with
+`InstallSnapshot` instead of a replay.
+
+**Membership changes.** `add_server` / `remove_server` append a configuration
+entry, which every node adopts *on append* rather than on commit - safe because
+changes are restricted to one server at a time, so the old and new majorities
+always overlap.
 
 ## Concurrency model
 

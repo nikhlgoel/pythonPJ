@@ -24,9 +24,11 @@ and the reason it matters commercially.
    cost model is already the right shape; only the estimate is coarse.
 6. **IVF-PQ and hybrid coarse quantisation** for billion-scale collections where
    a graph does not fit in memory.
-7. **Live HTTP Raft transport.** The consensus core is implemented and tested
-   deterministically; binding it to a real multi-process cluster is mostly
-   plumbing plus snapshot/install-snapshot support for a lagging follower.
+7. **Cluster hardening.** The HTTP transport, log compaction with
+   `InstallSnapshot`, and one-at-a-time membership changes are done. What remains
+   is pre-vote (to stop a partitioned node disrupting a healthy term), leadership
+   transfer for clean restarts, and read-index leases so linearizable reads do
+   not have to go through the log.
 8. **Sharding by key range** with the planner scattering and gathering.
 9. **Late-interaction (ColBERT-style) reranking** as an optional third fusion
    stage.

@@ -22,6 +22,8 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from .. import __version__
+from ..cluster.service import RaftService
+from ..cluster.wire import decode_message, encode_message
 from ..db import Database
 from ..errors import AnnexError, ConflictError, NotFoundError, QueryError, SchemaError
 from .schemas import (
@@ -43,8 +45,15 @@ _STATUS = {
 }
 
 
-def create_app(db: Database, *, api_key: str | None = None) -> FastAPI:
-    """Build an ASGI app serving ``db``."""
+def create_app(
+    db: Database, *, api_key: str | None = None, raft: RaftService | None = None
+) -> FastAPI:
+    """Build an ASGI app serving ``db``.
+
+    Passing ``raft`` mounts the replication endpoint, turning this process into a
+    cluster member: peers POST Raft envelopes to ``/v1/raft/message`` and the
+    replies ride back in the response body.
+    """
     app = FastAPI(
         title="Annex",
         version=__version__,
@@ -204,6 +213,38 @@ def create_app(db: Database, *, api_key: str | None = None) -> FastAPI:
         coll = collection(name)
         coll.flush()
         return coll.stats()["storage"]
+
+    # -- replication ---------------------------------------------------
+    if raft is not None:
+        app.state.raft = raft
+
+        @app.post("/v1/raft/message", tags=["cluster"])
+        def raft_message(envelope: dict[str, Any]) -> dict[str, Any]:
+            """Accept one Raft envelope and return the replies it produced."""
+            message = decode_message(envelope)
+            if message.dst != raft.id:
+                raise HTTPException(
+                    status_code=421, detail=f"envelope addressed to {message.dst}, not {raft.id}"
+                )
+            return {"replies": [encode_message(m) for m in raft.receive(message)]}
+
+        @app.get("/v1/raft/status", tags=["cluster"], dependencies=auth)
+        def raft_status() -> dict[str, Any]:
+            return raft.state()
+
+        @app.post("/v1/raft/members/{node_id}", tags=["cluster"], dependencies=auth)
+        def raft_add(node_id: str) -> dict[str, Any]:
+            index = raft.add_server(node_id)
+            return {"appended_at": index, **raft.state()}
+
+        @app.delete("/v1/raft/members/{node_id}", tags=["cluster"], dependencies=auth)
+        def raft_remove(node_id: str) -> dict[str, Any]:
+            index = raft.remove_server(node_id)
+            return {"appended_at": index, **raft.state()}
+
+        @app.post("/v1/raft/compact", tags=["cluster"], dependencies=auth)
+        def raft_compact() -> dict[str, Any]:
+            return {"discarded": raft.compact(), **raft.state()}
 
     return app
 

@@ -31,6 +31,40 @@ class CollectionStateMachine:
     def __call__(self, command: dict) -> None:
         self.apply(command)
 
+    # -- snapshot / restore -------------------------------------------
+    def snapshot(self) -> dict:
+        """Serialise every live document - the payload of ``InstallSnapshot``."""
+        docs = []
+        for doc_id in sorted(self.collection._current):  # noqa: SLF001 - same package
+            hit = self.collection.get(doc_id, include_vector=True)
+            if hit is None or hit.vector is None:
+                continue
+            docs.append(
+                {
+                    "id": hit.id,
+                    "vector": np.asarray(hit.vector, dtype=np.float32).tolist(),
+                    "metadata": hit.metadata,
+                    "text": hit.text,
+                }
+            )
+        return {"documents": docs, "applied": self.applied}
+
+    def restore(self, snapshot: dict | None) -> None:
+        """Replace local state with a snapshot shipped by the leader."""
+        if not snapshot:
+            return
+        for doc_id in list(self.collection._current):  # noqa: SLF001
+            self.collection.delete(doc_id)
+        for doc in snapshot.get("documents", []):
+            self.collection.upsert(
+                doc["id"],
+                np.asarray(doc["vector"], dtype=np.float32),
+                doc.get("metadata") or {},
+                doc.get("text"),
+            )
+        self.collection.vacuum()
+        self.applied = int(snapshot.get("applied", self.applied))
+
     def apply(self, command: dict) -> None:
         op = command.get("op")
         if op == "upsert":

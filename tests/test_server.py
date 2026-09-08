@@ -132,3 +132,90 @@ def test_bearer_auth_is_enforced_when_configured(tmp_path):
         assert c.get(
             "/v1/collections", headers={"authorization": "Bearer wrong"}
         ).status_code == 401
+
+
+# -------------------------------------------------------- replication API
+def raft_app(tmp_path, node_id="n1", peers=("n1", "n2", "n3")):
+    from annex.cluster import InProcessTransport, RaftNode, RaftService
+    from annex.cluster.state_machine import CollectionStateMachine
+
+    db = Database(tmp_path / node_id)
+    coll = db.create_collection("c", dim=4)
+    machine = CollectionStateMachine(coll)
+    node = RaftNode(
+        node_id, list(peers), seed=5, apply_fn=machine,
+        snapshot_fn=machine.snapshot, restore_fn=machine.restore,
+    )
+    service = RaftService(node, InProcessTransport())
+    return create_app(db, raft=service), service
+
+
+def test_raft_endpoint_absent_without_a_service(client):
+    assert client.post("/v1/raft/message", json={}).status_code == 404
+
+
+def test_raft_endpoint_handles_a_vote_request(tmp_path):
+    from annex.cluster import Message, RequestVote, encode_message
+
+    app, service = raft_app(tmp_path)
+    with TestClient(app) as c:
+        envelope = encode_message(Message("n2", "n1", RequestVote(2, "n2", 0, 0)))
+        body = c.post("/v1/raft/message", json=envelope).json()
+        assert body["replies"][0]["kind"] == "RequestVoteReply"
+        assert body["replies"][0]["payload"]["vote_granted"] is True
+        assert service.node.current_term == 2
+
+
+def test_raft_endpoint_rejects_misaddressed_envelopes(tmp_path):
+    from annex.cluster import Message, RequestVote, encode_message
+
+    app, _ = raft_app(tmp_path)
+    with TestClient(app) as c:
+        envelope = encode_message(Message("n2", "n3", RequestVote(2, "n2", 0, 0)))
+        assert c.post("/v1/raft/message", json=envelope).status_code == 421
+
+
+def test_raft_endpoint_rejects_garbage(tmp_path):
+    app, _ = raft_app(tmp_path)
+    with TestClient(app) as c:
+        assert c.post("/v1/raft/message", json={"src": "a", "dst": "n1"}).status_code == 500
+
+
+def test_raft_status_and_membership_endpoints(tmp_path):
+    app, service = raft_app(tmp_path, peers=("n1",))  # single-node cluster
+    with TestClient(app) as c:
+        assert c.get("/v1/raft/status").json()["id"] == "n1"
+        service.tick(5000)  # a lone node elects itself on the first timeout
+        assert service.is_leader
+        assert c.post("/v1/raft/members/n4").json()["members"] == ["n1", "n4"]
+        assert c.delete("/v1/raft/members/n4").json()["members"] == ["n1"]
+        assert c.post("/v1/raft/compact").json()["discarded"] >= 0
+
+
+def test_http_transport_carries_raft_traffic(tmp_path):
+    """A two-node exchange driven entirely through the HTTP codec + endpoint."""
+    from annex.cluster import HttpTransport, Message, RequestVote, encode_message
+
+    app, service = raft_app(tmp_path, "n1", ("n1", "n2"))
+    with TestClient(app, base_url="http://peer") as c:
+        transport = HttpTransport({"n1": "http://peer"}, client=c)
+        replies = transport.send([Message("n2", "n1", RequestVote(3, "n2", 0, 0))])
+        assert len(replies) == 1
+        assert replies[0].payload.vote_granted is True
+        assert service.node.current_term == 3
+
+        # an unknown peer and an unreachable host are dropped, not raised
+        assert transport.send([Message("n2", "ghost", RequestVote(3, "n2", 0, 0))]) == []
+        broken = HttpTransport({"n1": "http://nowhere.invalid"}, client=c)
+        broken.client = _Boom()
+        assert broken.send([Message("n2", "n1", RequestVote(3, "n2", 0, 0))]) == []
+        assert broken.dropped == 1
+        assert encode_message(Message("n2", "n1", RequestVote(3, "n2", 0, 0)))["kind"]
+
+
+class _Boom:
+    def post(self, *_a, **_kw):
+        raise ConnectionError("peer unreachable")
+
+    def close(self):
+        return None

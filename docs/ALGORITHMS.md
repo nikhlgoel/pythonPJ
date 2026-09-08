@@ -120,3 +120,11 @@ Implemented per figure 2 of Ongaro & Ousterhout (2014):
 * **Leader completeness** — the leader advances `commitIndex` only to an entry
   **from its own term** replicated on a quorum. Skipping that rule is the classic
   way to lose a committed entry after a leader change.
+* **Log compaction** — only *applied* entries may be folded into a snapshot, so
+  `compact(up_to)` is clamped to `last_applied`. Entries keep absolute indices
+  and are resolved against `snapshot_index`, which is why compaction touches no
+  other part of the protocol.
+* **Membership changes** — a configuration entry takes effect on *append*, not on
+  commit (Raft §4.1). That is only safe when membership changes one server at a
+  time, since then any old majority and any new majority intersect; `add_server`
+  and `remove_server` enforce exactly that restriction.
