@@ -1,12 +1,12 @@
-<frozen runpy>:128: RuntimeWarning: 'embra.bench.suite' found in sys.modules after import of package 'embra.bench', but prior to execution of 'embra.bench.suite'; this may result in unpredictable behaviour
 
 Embra benchmark - n=20000 dim=128 queries=200 k=10
 
-flat (exact)           recall@10= 1.000  qps=   384.3  p50=  2.53ms  p95=  2.96ms  build=  0.02s  mem=  10.2MB
-hnsw ef=32             recall@10= 0.977  qps=  1590.8  p50=  0.59ms  p95=  0.81ms  build=121.10s  mem=  10.2MB
-hnsw ef=64             recall@10= 0.987  qps=   979.3  p50=  1.01ms  p95=  1.20ms  build=  0.00s  mem=  10.2MB
-hnsw ef=128            recall@10= 0.994  qps=   522.9  p50=  1.85ms  p95=  2.30ms  build=  0.00s  mem=  10.2MB
-hnsw ef=256            recall@10= 0.997  qps=   278.9  p50=  3.56ms  p95=  3.99ms  build=  0.00s  mem=  10.2MB
-hnsw+pq ef=128         recall@10= 0.461  qps=   298.9  p50=  3.32ms  p95=  3.78ms  build=164.59s  mem=  10.4MB
+flat (exact)           recall@10= 1.000  qps=   403.4  p50=  2.37ms  p95=  2.70ms  build=  0.02s  mem=  10.2MB
+hnsw ef=32             recall@10= 0.977  qps=  1308.2  p50=  0.77ms  p95=  1.02ms  build=121.18s  mem=  10.2MB
+hnsw ef=64             recall@10= 0.987  qps=   979.3  p50=  1.00ms  p95=  1.24ms  build=  0.00s  mem=  10.2MB
+hnsw ef=128            recall@10= 0.994  qps=   499.0  p50=  1.90ms  p95=  2.54ms  build=  0.00s  mem=  10.2MB
+hnsw ef=256            recall@10= 0.997  qps=   273.7  p50=  3.64ms  p95=  4.07ms  build=  0.00s  mem=  10.2MB
+hnsw+pq ef=128         recall@10= 0.986  qps=   131.4  p50=  7.54ms  p95=  8.49ms  build=313.60s  mem=  10.9MB
+hnsw+pq (codes only) ef=128 recall@10= 0.636  qps=   114.1  p50=  8.64ms  p95= 10.44ms  build=713.52s  mem=   0.6MB
 
 wrote benchmarks/results-n20000-d128.json

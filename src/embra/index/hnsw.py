@@ -41,7 +41,7 @@ class HNSWIndex(VectorIndex):
         space: VectorSpace,
         config: HNSWConfig | None = None,
         *,
-        rerank_factor: int = 3,
+        rerank_factor: int = 8,
     ) -> None:
         self.space = space
         self.cfg = config or HNSWConfig()

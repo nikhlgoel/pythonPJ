@@ -99,28 +99,58 @@ class Filter:
         return max(0.001, min(1.0, (0.1**eq) * (0.33**other)))
 
 
+def _always_true(_meta: Metadata) -> bool:
+    return True
+
+
+def _all_of(subs: list[Predicate]) -> Predicate:
+    def run(meta: Metadata) -> bool:
+        return all(sub(meta) for sub in subs)
+
+    return run
+
+
+def _any_of(subs: list[Predicate]) -> Predicate:
+    def run(meta: Metadata) -> bool:
+        return any(sub(meta) for sub in subs)
+
+    return run
+
+
+def _negate(sub: Predicate) -> Predicate:
+    def run(meta: Metadata) -> bool:
+        return not sub(meta)
+
+    return run
+
+
+def _ops_on(field: str, ops: list[tuple[str, Any]]) -> Predicate:
+    def run(meta: Metadata) -> bool:
+        value = _get(meta, field)
+        return all(_cmp(op, value, rhs) for op, rhs in ops)
+
+    return run
+
+
 def compile_filter(spec: dict | None) -> Filter:
     """Compile a filter specification into a :class:`Filter`."""
     if not spec:
-        return Filter(lambda _meta: True)
+        return Filter(_always_true)
     fields: set[str] = set()
     eq_fields: set[str] = set()
     clauses = [0]
 
-    def build(node: Any) -> Predicate:
+    def build(node: Any) -> Predicate:  # noqa: C901 - a compiler is a dispatch table
         if not isinstance(node, dict):
             raise QueryError(f"filter node must be a dict, got {type(node).__name__}")
         parts: list[Predicate] = []
         for key, value in node.items():
             if key == "$and":
-                subs = [build(v) for v in value]
-                parts.append(lambda m, s=subs: all(p(m) for p in s))
+                parts.append(_all_of([build(v) for v in value]))
             elif key == "$or":
-                subs = [build(v) for v in value]
-                parts.append(lambda m, s=subs: any(p(m) for p in s))
+                parts.append(_any_of([build(v) for v in value]))
             elif key == "$not":
-                sub = build(value)
-                parts.append(lambda m, p=sub: not p(m))
+                parts.append(_negate(build(value)))
             elif key.startswith("$"):
                 raise QueryError(f"unknown top-level operator {key!r}")
             else:
@@ -131,17 +161,15 @@ def compile_filter(spec: dict | None) -> Filter:
                     for op, _ in ops:
                         if op == "$eq":
                             eq_fields.add(key)
-                    parts.append(
-                        lambda m, f=key, o=ops: all(_cmp(op, _get(m, f), rhs) for op, rhs in o)
-                    )
+                    parts.append(_ops_on(key, ops))
                 else:
                     eq_fields.add(key)
-                    parts.append(lambda m, f=key, v=value: _cmp("$eq", _get(m, f), v))
+                    parts.append(_ops_on(key, [("$eq", value)]))
         if not parts:
-            return lambda _m: True
+            return _always_true
         if len(parts) == 1:
             return parts[0]
-        return lambda m, p=tuple(parts): all(fn(m) for fn in p)
+        return _all_of(parts)
 
     predicate = build(spec)
     return Filter(predicate, frozenset(fields), frozenset(eq_fields), clauses[0])

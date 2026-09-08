@@ -117,6 +117,22 @@ curl -s -X POST localhost:8080/v1/collections/docs/search \
 
 Interactive OpenAPI docs at `http://localhost:8080/docs`.
 
+## Measured performance
+
+`n=20,000`, `dim=128`, `k=10`, clustered data, single-threaded pure Python + NumPy
+([full table and method](docs/BENCHMARKS.md)):
+
+| Configuration | recall@10 | QPS | p50 | vector memory |
+|---|---:|---:|---:|---:|
+| `flat` (exact ground truth) | 1.000 | 403 | 2.37 ms | 10.2 MB |
+| `hnsw ef=32` | 0.977 | **1308** | 0.77 ms | 10.2 MB |
+| `hnsw ef=128` | 0.994 | 499 | 1.90 ms | 10.2 MB |
+| `hnsw+pq` (rerank on originals) | 0.986 | 131 | 7.54 ms | 10.9 MB |
+| `hnsw+pq` (codes only) | 0.636 | 114 | 8.64 ms | **0.6 MB** |
+
+Reproduce with `make bench`. Note the row that matters most: at `n=4,000` the
+exact scan beats the graph outright — which is why the planner exists.
+
 ## Documentation
 
 * [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — layer-by-layer design and data flow

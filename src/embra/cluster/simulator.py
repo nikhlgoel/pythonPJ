@@ -78,11 +78,11 @@ class ClusterSimulator:
         ready = [s for s in self._queue if s.at <= self.time]
         self._queue = [s for s in self._queue if s.at > self.time]
         for scheduled in ready:
-            node = self.nodes.get(scheduled.message.dst)
-            if node is None:
+            target = self.nodes.get(scheduled.message.dst)
+            if target is None:
                 continue
             self.delivered += 1
-            self._enqueue(node.handle(scheduled.message, self.time))
+            self._enqueue(target.handle(scheduled.message, self.time))
 
     def run(self, ms: int, dt: int = 1) -> None:
         for _ in range(0, ms, dt):
@@ -103,9 +103,9 @@ class ClusterSimulator:
     def wait_for_leader(self, max_ms: int = 3000) -> RaftNode:
         for _ in range(max_ms):
             self.step()
-            leader = self.leader()
-            if leader is not None and len(self.leaders()) == 1:
-                return leader
+            candidate = self.leader()
+            if candidate is not None and len(self.leaders()) == 1:
+                return candidate
         raise TimeoutError("no leader elected")
 
     def converged(self) -> bool:

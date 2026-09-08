@@ -30,27 +30,46 @@ embra bench --n 20000 --dim 128
   NumPy, so treat them as *relative* comparisons between strategies, not as
   competition with a SIMD C++ engine.
 
-## Reading the results
+## Measured results
 
-Checked-in runs live in [`../benchmarks/`](../benchmarks). The shape to expect:
+`n=20,000`, `dim=128`, 200 queries, `k=10`, clustered data, single thread,
+Python 3.11 + NumPy on one container vCPU. Raw output:
+[`benchmarks/results-n20000-d128.txt`](../benchmarks/results-n20000-d128.txt),
+machine-readable JSON alongside it.
 
-| Configuration | recall@10 | Notes |
-|---|---|---|
-| `flat (exact)` | 1.000 | The ground truth. Fastest option on small collections. |
-| `hnsw ef=32` | ~0.90 | Lowest latency graph setting |
-| `hnsw ef=128` | ~0.98 | The usual production point |
-| `hnsw ef=256` | ~0.99 | Diminishing returns |
-| `hnsw+pq` | lower, ~32× less vector memory | Reranking recovers most of the loss |
+| Configuration | recall@10 | QPS | p50 | p95 | vector memory |
+|---|---:|---:|---:|---:|---:|
+| `flat (exact)` | **1.000** | 403 | 2.37 ms | 2.70 ms | 10.2 MB |
+| `hnsw ef=32` | 0.977 | **1308** | 0.77 ms | 1.02 ms | 10.2 MB |
+| `hnsw ef=64` | 0.987 | 979 | 1.00 ms | 1.24 ms | 10.2 MB |
+| `hnsw ef=128` | 0.994 | 499 | 1.90 ms | 2.54 ms | 10.2 MB |
+| `hnsw ef=256` | 0.997 | 274 | 3.64 ms | 4.07 ms | 10.2 MB |
+| `hnsw+pq ef=128` (rerank on originals) | 0.986 | 131 | 7.54 ms | 8.49 ms | 10.9 MB |
+| `hnsw+pq ef=128` (codes only) | 0.636 | 114 | 8.64 ms | 10.44 ms | **0.6 MB** |
 
-Two results are worth internalising because they justify design decisions in the
-engine:
+### What these numbers say
 
-1. **Below a few thousand vectors, `flat` beats `hnsw` outright.** A single
-   BLAS-backed scan is faster than a Python graph walk. This is exactly why the
-   query planner exists and why `small_collection_threshold` defaults to 2000.
-2. **`ef` is a monotone recall/latency dial.** Doubling `ef` roughly doubles the
-   distance computations, and recall saturates well before latency does — which
-   is why `ef` is exposed per query, not just per collection.
+1. **`ef` is a clean recall/latency dial.** 0.977 → 0.997 recall costs 4.8× the
+   latency. Recall saturates long before latency does, which is why `ef` is
+   exposed per query and not just per collection.
+2. **HNSW at `ef=32` is 3.2× the throughput of an exact scan at 97.7% recall** —
+   and the crossover is real: at `n=4,000` the exact scan *wins outright*. That
+   crossover is the entire justification for the query planner and for
+   `small_collection_threshold = 2000`.
+3. **PQ buys 17× less vector memory (10.2 MB → 0.6 MB) at 0.64 recall on codes
+   alone; keeping originals for the rerank stage restores 0.986.** That is the
+   honest PQ trade-off: the codes are for *navigation*, and exactness has to come
+   from somewhere. The middle ground — codes in RAM, originals on disk, fetched
+   only for the `k × rerank_factor` finalists — is the production shape and is on
+   the [roadmap](ROADMAP.md).
+4. **Sub-space granularity dominates PQ recall.** With `dim=128`, moving from
+   8 sub-vectors (16 dims each) to 32 (4 dims each) took recall from 0.61 to
+   0.97 at essentially the same memory. The default is `dim // 4`.
+
+Build times (121 s for 20k HNSW inserts) are the pure-Python tax: construction
+runs the neighbour-selection heuristic in Python for every insert. Query time is
+vectorised and therefore far healthier than build time. Native construction
+kernels are roadmap item #1.
 
 ## Reproducibility
 

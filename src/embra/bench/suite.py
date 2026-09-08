@@ -18,6 +18,7 @@ import statistics
 import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 
@@ -84,7 +85,7 @@ def benchmark_index(
     params: dict | None = None,
 ) -> BenchmarkResult:
     start = time.perf_counter()
-    space = getattr(index, "space", None)
+    space: Any = getattr(index, "space", None)
     if space is not None and hasattr(space, "train") and not getattr(space, "is_trained", True):
         space.train(data)
     for i, vec in enumerate(data):
@@ -160,19 +161,23 @@ def run_suite(
             res = benchmark_index_prebuilt(f"hnsw ef={ef}", index, qs, truth, k, ef, n, dim)
             results.append(res)
 
-    pq_cfg = CollectionConfig(
-        name="bench", dim=dim, index=IndexKind.HNSW_PQ,
-        hnsw=HNSWConfig(m=16, ef_construction=200),
-        pq=PQConfig(subvectors=max(1, dim // 16), bits=8),
-    )
-    if dim % pq_cfg.pq.subvectors == 0:
-        pq_index = build_index(pq_cfg, n)
-        results.append(
-            benchmark_index(
-                "hnsw+pq ef=128", pq_index, data, qs, truth, k, ef=128,
-                params={"subvectors": pq_cfg.pq.subvectors, "bits": 8},
+    subvectors = max(1, dim // 4)
+    if dim % subvectors == 0:
+        for label, keep in (("hnsw+pq", True), ("hnsw+pq (codes only)", False)):
+            pq_cfg = CollectionConfig(
+                name="bench", dim=dim, index=IndexKind.HNSW_PQ,
+                hnsw=HNSWConfig(m=16, ef_construction=200),
+                pq=PQConfig(subvectors=subvectors, bits=8, keep_originals=keep),
             )
-        )
+            pq_index = build_index(pq_cfg, n)
+            res = benchmark_index(
+                f"{label} ef=128", pq_index, data, qs, truth, k, ef=128,
+                params={"subvectors": subvectors, "bits": 8, "keep_originals": keep},
+            )
+            space: Any = pq_index.space
+            res.params["code_mb"] = round(space.code_bytes() / 1e6, 2)
+            res.params["compression_ratio"] = space.compression_ratio()
+            results.append(res)
     return results
 
 
@@ -195,7 +200,7 @@ def benchmark_index_prebuilt(
         found.append([key for key, _ in hits])
     latencies.sort()
     total_s = sum(latencies) / 1000.0
-    space = getattr(index, "space", None)
+    space: Any = getattr(index, "space", None)
     return BenchmarkResult(
         name=name, n=n, dim=dim, k=k,
         recall=recall_at_k(found, truth, k),

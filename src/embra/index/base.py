@@ -9,14 +9,21 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 import numpy as np
+
+if TYPE_CHECKING:  # pragma: no cover
+    from .space import VectorSpace
 
 Predicate = Callable[[int], bool]
 
 
 class VectorIndex(ABC):
     """Approximate or exact nearest-neighbour index over dense internal keys."""
+
+    #: storage backend holding the vectors this index navigates
+    space: VectorSpace
 
     @abstractmethod
     def add(self, key: int, vector: np.ndarray) -> None:

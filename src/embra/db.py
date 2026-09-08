@@ -43,7 +43,7 @@ from .query.planner import PlannedQuery, QueryPlanner, Strategy
 from .storage import LSMStore
 from .text import BM25Index, Tokenizer
 from .types import DocId, Hit, IndexKind, Metadata, Metric, Record, SearchResult, Seq
-from .util.math import distance_matrix, l2_normalize, score_from_distance, validate_vector
+from .util.math import l2_normalize, score_from_distance, validate_vector
 from .util.timing import Stopwatch
 
 CONFIG_FILE = "collection.json"
@@ -161,9 +161,10 @@ class Collection:
         records = sorted(self._store.iter_live(), key=lambda r: r.seq)
         if not records:
             return
-        if isinstance(getattr(self._index, "space", None), PQSpace):
+        space = self._index.space
+        if isinstance(space, PQSpace):
             sample = np.stack([r.vector for r in records if r.vector is not None])
-            self._index.space.train(sample)  # type: ignore[union-attr]
+            space.train(sample)
         for rec in records:
             if rec.vector is None:
                 continue
@@ -322,11 +323,7 @@ class Collection:
     def _exact_search(self, query: np.ndarray, k: int, keys: np.ndarray) -> list[tuple[int, float]]:
         if keys.size == 0:
             return []
-        space = self._index.space  # type: ignore[attr-defined]
-        if isinstance(space, PQSpace):
-            dists = space.exact_distances(query, keys)
-        else:
-            dists = distance_matrix(query, space.data[keys] if hasattr(space, "data") else space._data[keys], self.metric)  # noqa: SLF001
+        dists = self._index.space.exact_distances(query, keys)
         kk = min(k, keys.size)
         part = np.argpartition(dists, kk - 1)[:kk]
         order = part[np.argsort(dists[part], kind="stable")]
@@ -426,14 +423,11 @@ class Collection:
         fused = reciprocal_rank_fusion(
             [dense, lexical], weights=list(weights), k_constant=rrf_k, top_k=k
         )
-        return [(int(key), float(score)) for key, score in fused]
+        return [(int(key), float(score)) for key, score in fused]  # type: ignore[call-overload]
 
     def _to_hit(self, key: int, score: float, include_vector: bool) -> Hit:
         ver = self._versions[key]
-        vec = None
-        if include_vector:
-            space = self._index.space  # type: ignore[attr-defined]
-            vec = np.array(space._data[key] if hasattr(space, "_data") else space._raw[key])  # noqa: SLF001
+        vec = np.array(self._index.space.get(key)) if include_vector else None
         return Hit(ver.doc_id, score, ver.metadata, ver.text, vec)
 
     # ------------------------------------------------------------------
@@ -482,12 +476,7 @@ class Collection:
             self._next_key = len(versions)
 
     def _vector_of(self, key: int) -> np.ndarray:
-        space = self._index.space  # type: ignore[attr-defined]
-        if isinstance(space, PQSpace):
-            if space._raw is not None:  # noqa: SLF001
-                return space._raw[key]  # noqa: SLF001
-            return space.pq.decode(space._codes[key : key + 1])[0]  # noqa: SLF001
-        return space._data[key]  # noqa: SLF001
+        return self._index.space.get(key)
 
     def flush(self) -> None:
         with self._lock:

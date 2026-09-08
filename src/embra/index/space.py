@@ -65,6 +65,14 @@ class VectorSpace(ABC):
     def distances_ctx(self, ctx, keys: np.ndarray) -> np.ndarray:
         """Distances using a prepared context (avoids re-building ADC tables)."""
 
+    @abstractmethod
+    def get(self, key: int) -> np.ndarray:
+        """The stored vector for ``key`` (reconstructed, if only codes are kept)."""
+
+    @abstractmethod
+    def exact_distances(self, query: np.ndarray, keys: np.ndarray) -> np.ndarray:
+        """Full-precision distances, used by exact scans and the rerank stage."""
+
     def memory_bytes(self) -> int:
         return 0
 
@@ -99,6 +107,9 @@ class ExactSpace(VectorSpace):
 
     def distance_between(self, a: int, b: int) -> float:
         return distance_pair(self._data[a], self._data[b], self.metric)
+
+    def exact_distances(self, query: np.ndarray, keys: np.ndarray) -> np.ndarray:
+        return self.distances(query, keys)
 
     def query_context(self, query: np.ndarray):
         return np.ascontiguousarray(query, dtype=np.float32)
@@ -190,6 +201,11 @@ class PQSpace(VectorSpace):
             return distance_matrix(query, recon, self.metric)
         return distance_matrix(query, self._raw[keys], self.metric)
 
+    def get(self, key: int) -> np.ndarray:
+        if self._raw is not None:
+            return self._raw[key]
+        return self.pq.decode(self._codes[key : key + 1])[0]
+
     def distance_between(self, a: int, b: int) -> float:
         if self._raw is not None:
             return distance_pair(self._raw[a], self._raw[b], self.metric)
@@ -202,3 +218,11 @@ class PQSpace(VectorSpace):
         if self._raw is not None:
             total += int(self._raw.nbytes)
         return total
+
+    def code_bytes(self) -> int:
+        """Memory the compressed representation alone would need."""
+        return int(self._codes.nbytes)
+
+    def compression_ratio(self) -> float:
+        """How much smaller the codes are than full-precision vectors."""
+        return (self.dim * 4) / max(self.pq.m, 1)

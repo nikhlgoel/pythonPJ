@@ -52,12 +52,19 @@ class PQConfig:
     train_iters: int = 25
     train_sample: int = 50_000
     seed: int = 7
+    #: keep full-precision vectors alongside the codes so the rerank stage is
+    #: exact.  Disable to get the full 32x memory saving at some recall cost.
+    keep_originals: bool = True
+    #: how many extra candidates the graph fetches before exact reranking
+    rerank_factor: int = 8
 
     def __post_init__(self) -> None:
         if self.subvectors < 1:
             raise ConfigError("pq.subvectors must be >= 1")
         if self.bits not in (4, 8):
             raise ConfigError("pq.bits must be 4 or 8")
+        if self.rerank_factor < 1:
+            raise ConfigError("pq.rerank_factor must be >= 1")
 
     @property
     def centroids(self) -> int:

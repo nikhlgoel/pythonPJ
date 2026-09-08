@@ -72,3 +72,40 @@ def test_symmetric_distance_is_non_negative_for_l2(data):
     codes = pq.encode(data[:5])
     assert pq.sdc(codes[0], codes[1]) >= 0.0
     assert pq.sdc(codes[0], codes[0]) == pytest.approx(0.0, abs=1e-5)
+
+
+def test_pq_space_reports_compression(data):
+    from embra.config import PQConfig as _PQ
+
+    space = PQSpace(32, Metric.COSINE, _PQ(subvectors=8, train_iters=5), keep_originals=False)
+    space.train(data[:500])
+    for i, v in enumerate(data[:100]):
+        space.set(i, v)
+    assert space.compression_ratio() == 16.0
+    assert space.code_bytes() < 32 * 4 * 100
+    assert space.memory_bytes() == space.code_bytes()
+
+
+def test_pq_rerank_improves_recall(tmp_path):
+    from embra import Database
+    from embra.bench.datasets import clustered_dataset, query_set
+    from embra.bench.suite import exact_ground_truth, recall_at_k
+    from embra.config import PQConfig as _PQ
+
+    data = clustered_dataset(1500, 32, clusters=12, seed=4)
+    queries = query_set(data, 25, seed=5)
+    truth = exact_ground_truth(data, queries, 10, Metric.COSINE)
+
+    def recall(rerank: int) -> float:
+        db = Database(tmp_path / f"pq{rerank}")
+        coll = db.create_collection(
+            "c", dim=32, index="hnsw_pq", pq=_PQ(subvectors=8, rerank_factor=rerank)
+        )
+        coll.planner.small_collection_threshold = 0
+        coll.planner.scan_speedup = 0.001
+        for i, v in enumerate(data):
+            coll.upsert(f"d{i}", v)
+        found = [[int(h.id[1:]) for h in coll.search(q, k=10, ef=128)] for q in queries]
+        return recall_at_k(found, truth, 10)
+
+    assert recall(8) >= recall(1)
