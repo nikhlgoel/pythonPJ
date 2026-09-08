@@ -42,6 +42,8 @@ def _get(meta: Metadata, path: str) -> Any:
 
 
 def _cmp(op: str, left: Any, right: Any) -> bool:
+    if op == "$exists":
+        return bool(right) is (left is not _MISSING)
     if left is _MISSING:
         return op in ("$ne", "$nin")
     try:
@@ -63,8 +65,6 @@ def _cmp(op: str, left: Any, right: Any) -> bool:
             return left not in right
         if op == "$contains":
             return right in left
-        if op == "$exists":
-            return bool(right)
         if op == "$regex":
             return re.search(right, str(left)) is not None
         if op == "$between":

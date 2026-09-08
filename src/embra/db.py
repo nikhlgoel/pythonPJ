@@ -22,6 +22,7 @@ rebuilds the in-memory indexes deterministically.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import shutil
 import threading
@@ -33,7 +34,7 @@ import numpy as np
 
 from .config import CollectionConfig, StorageConfig
 from .errors import ConflictError, NotFoundError, SchemaError, TransactionError
-from .index import FlatIndex, HNSWIndex, build_index
+from .index import build_index
 from .index.space import PQSpace
 from .mvcc import INF, Snapshot, SnapshotRegistry, Version
 from .query.filter import Filter, compile_filter
@@ -447,10 +448,8 @@ class Collection:
             horizon = self._snapshots.horizon(self.current_seq)
             dead = [k for k, v in self._versions.items() if v.dead <= horizon]
             for key in dead:
-                try:
+                with contextlib.suppress(Exception):  # the index may not know the key
                     self._index.remove(key)
-                except Exception:  # noqa: BLE001 - index may not know the key
-                    pass
                 if self._bm25 is not None:
                     self._bm25.remove(key)
                 del self._versions[key]
@@ -466,7 +465,7 @@ class Collection:
                 mat = np.stack([self._vector_of(k) for k, _ in live])
                 space.train(mat)
             remap: dict[int, int] = {}
-            for new_key, (old_key, ver) in enumerate(live):
+            for new_key, (old_key, _ver) in enumerate(live):
                 new_index.add(new_key, self._vector_of(old_key))
                 remap[old_key] = new_key
             versions: dict[int, Version] = {}

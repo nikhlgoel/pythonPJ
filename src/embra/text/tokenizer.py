@@ -13,10 +13,7 @@ import re
 _WORD = re.compile(r"[\w']+", re.UNICODE)
 
 DEFAULT_STOPWORDS = frozenset(
-    """
-    a an and are as at be but by for from has have he her his i if in into is it its
-    of on or she that the their them there these they this to was were will with you your
-    """.split()
+    ["a", "an", "and", "are", "as", "at", "be", "but", "by", "for", "from", "has", "have", "he", "her", "his", "i", "if", "in", "into", "is", "it", "its", "of", "on", "or", "she", "that", "the", "their", "them", "there", "these", "they", "this", "to", "was", "were", "will", "with", "you", "your"]
 )
 
 _SUFFIXES = ("ational", "iveness", "fulness", "ousness", "ization", "ation", "ingly",

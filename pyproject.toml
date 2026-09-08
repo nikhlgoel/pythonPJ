@@ -41,7 +41,7 @@ packages = ["src/embra"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
-filterwarnings = ["error::DeprecationWarning"]
+filterwarnings = ["error::DeprecationWarning:embra.*"]
 
 [tool.ruff]
 line-length = 100

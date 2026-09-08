@@ -16,11 +16,11 @@ implementation runs over exact vectors or over 32x-compressed PQ codes.
 """
 
 from .base import VectorIndex
+from .factory import build_index
 from .flat import FlatIndex
 from .hnsw import HNSWIndex
 from .pq import ProductQuantizer
 from .space import ExactSpace, PQSpace, VectorSpace
-from .factory import build_index
 
 __all__ = [
     "ExactSpace",
