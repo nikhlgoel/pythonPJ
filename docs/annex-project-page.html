@@ -1,0 +1,826 @@
+<title>Annex Engine Build Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+
+<style>
+  :root {
+    --ground:   #eef2f1;
+    --surface:  #ffffff;
+    --sunken:   #e5ebe9;
+    --ink:      #0d1413;
+    --muted:    #566b67;
+    --faint:    #8496932e;
+    --rule:     #d2dcda;
+    --rule-hard:#b6c4c1;
+    --accent:   #0a6a67;
+    --accent-soft: #0a6a6714;
+    --amber:    #9c540a;
+    --amber-soft:  #9c540a14;
+    --ok:       #2b7549;
+    --ok-soft:  #2b754914;
+    --hold:     #7d8b88;
+
+    --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+    --col: 72ch;
+    --wide: 1080px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:   #090e0e;
+      --surface:  #101817;
+      --sunken:   #0d1414;
+      --ink:      #e3ebe8;
+      --muted:    #8ba09c;
+      --faint:    #8ba09c22;
+      --rule:     #1e2c2b;
+      --rule-hard:#2c403e;
+      --accent:   #45c0b8;
+      --accent-soft: #45c0b81f;
+      --amber:    #dd9440;
+      --amber-soft:  #dd94401f;
+      --ok:       #5ec084;
+      --ok-soft:  #5ec0841f;
+      --hold:     #6b7c79;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:   #090e0e;
+    --surface:  #101817;
+    --sunken:   #0d1414;
+    --ink:      #e3ebe8;
+    --muted:    #8ba09c;
+    --faint:    #8ba09c22;
+    --rule:     #1e2c2b;
+    --rule-hard:#2c403e;
+    --accent:   #45c0b8;
+    --accent-soft: #45c0b81f;
+    --amber:    #dd9440;
+    --amber-soft:  #dd94401f;
+    --ok:       #5ec084;
+    --ok-soft:  #5ec0841f;
+    --hold:     #6b7c79;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--f-body);
+    font-size: 16px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: var(--wide); margin: 0 auto; padding: 0 24px; }
+  .col  { max-width: var(--col); }
+
+  /* ---------------------------------------------------------- masthead */
+  header.mast {
+    border-bottom: 1px solid var(--rule);
+    background: var(--surface);
+  }
+  .mast-inner {
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px 22px;
+    padding: 18px 24px;
+    max-width: var(--wide); margin: 0 auto;
+  }
+  .logo {
+    font-family: var(--f-display);
+    font-weight: 700; font-size: 21px; letter-spacing: -0.02em;
+    display: flex; align-items: baseline; gap: 9px;
+  }
+  .logo .mark {
+    font-family: var(--f-mono); font-size: 12px; font-weight: 600;
+    color: var(--surface); background: var(--accent);
+    padding: 2px 6px; border-radius: 2px; letter-spacing: 0.04em;
+    position: relative; top: -2px;
+  }
+  .mast-sub {
+    font-family: var(--f-mono); font-size: 12.5px; color: var(--muted);
+    letter-spacing: 0.01em;
+  }
+  .mast-spacer { flex: 1 1 40px; }
+
+  /* ------------------------------------------------------------- hero */
+  .hero { padding: 54px 0 40px; border-bottom: 1px solid var(--rule); }
+  h1 {
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: clamp(32px, 5.2vw, 52px);
+    line-height: 1.06;
+    letter-spacing: -0.028em;
+    margin: 0 0 20px;
+    text-wrap: balance;
+  }
+  .lede { font-size: 18.5px; line-height: 1.6; margin: 0 0 26px; }
+  .lede strong { font-weight: 600; }
+
+  .statusline {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    font-family: var(--f-mono); font-size: 12.5px;
+  }
+  .chip {
+    display: inline-flex; align-items: center; gap: 7px;
+    border: 1px solid var(--rule-hard); border-radius: 2px;
+    padding: 4px 9px; color: var(--muted); background: var(--surface);
+    letter-spacing: 0.01em;
+  }
+  .chip.live { color: var(--amber); border-color: var(--amber); background: var(--amber-soft); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; display: inline-block; }
+
+  /* --------------------------------------------------------- sections */
+  section { padding: 46px 0; border-bottom: 1px solid var(--rule); }
+  .eyebrow {
+    font-family: var(--f-mono); font-size: 11.5px; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--accent); margin: 0 0 12px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .eyebrow::after {
+    content: ""; flex: 1; height: 1px; background: var(--rule);
+  }
+  h2 {
+    font-family: var(--f-display); font-weight: 600;
+    font-size: clamp(23px, 3vw, 30px); letter-spacing: -0.018em;
+    margin: 0 0 16px; text-wrap: balance;
+  }
+  h3 {
+    font-family: var(--f-display); font-weight: 600;
+    font-size: 17px; letter-spacing: -0.01em; margin: 30px 0 8px;
+  }
+  p { margin: 0 0 15px; }
+  a { color: var(--accent); text-underline-offset: 3px; }
+  strong { font-weight: 600; }
+  code, .mono { font-family: var(--f-mono); font-size: 0.88em; }
+  code { background: var(--faint); padding: 1px 4px; border-radius: 2px; }
+
+  /* ------------------------------------------------------- data strip */
+  .strip { overflow-x: auto; margin: 24px 0 6px; padding-bottom: 4px; }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 14px; }
+  th, td { text-align: left; padding: 9px 14px 9px 0; border-bottom: 1px solid var(--rule); }
+  thead th {
+    font-family: var(--f-mono); font-size: 11px; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+    border-bottom: 1px solid var(--rule-hard); white-space: nowrap;
+  }
+  td.num, th.num { text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums; padding-right: 0; }
+  tbody tr:last-child td { border-bottom: none; }
+  td.name { font-family: var(--f-mono); font-size: 13px; white-space: nowrap; }
+  tr.highlight td { background: var(--accent-soft); }
+  .caption {
+    font-family: var(--f-mono); font-size: 11.5px; color: var(--muted);
+    line-height: 1.5; margin-top: 10px;
+  }
+
+  /* ------------------------------------------------------------ phases */
+  .phases { margin: 26px 0 0; display: flex; flex-direction: column; }
+  .phase {
+    display: grid;
+    grid-template-columns: 62px 1fr;
+    gap: 0 20px;
+    padding: 18px 0;
+    border-top: 1px solid var(--rule);
+    position: relative;
+  }
+  .phase:last-child { border-bottom: 1px solid var(--rule); }
+  .phase-no {
+    font-family: var(--f-mono); font-size: 12px; font-weight: 600;
+    color: var(--muted); letter-spacing: 0.06em; padding-top: 3px;
+  }
+  .phase.done .phase-no { color: var(--ok); }
+  .phase.now  { background: var(--amber-soft); }
+  .phase.now .phase-no { color: var(--amber); }
+  .phase-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 14px; }
+  .phase-title { font-family: var(--f-display); font-weight: 600; font-size: 17px; letter-spacing: -0.01em; }
+  .phase-state {
+    font-family: var(--f-mono); font-size: 10.5px; font-weight: 600;
+    letter-spacing: 0.11em; text-transform: uppercase;
+    padding: 2px 7px; border-radius: 2px; border: 1px solid;
+  }
+  .s-done { color: var(--ok); border-color: var(--ok); background: var(--ok-soft); }
+  .s-now  { color: var(--amber); border-color: var(--amber); background: var(--amber-soft); }
+  .s-next { color: var(--hold); border-color: var(--rule-hard); }
+  .phase p { margin: 6px 0 0; font-size: 15px; }
+  .phase ul { margin: 8px 0 0; padding-left: 18px; font-size: 14.5px; color: var(--muted); }
+  .phase li { margin-bottom: 3px; }
+  .phase li b { color: var(--ink); font-weight: 500; }
+  .phase-meta {
+    font-family: var(--f-mono); font-size: 11.5px; color: var(--muted);
+    margin-top: 8px;
+  }
+  .phase.now, .phase.done, .phase.next { padding-left: 0; }
+  .phase.now { padding-left: 12px; margin-left: -12px; padding-right: 12px; }
+
+  /* --------------------------------------------------------- key stats */
+  .figures {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(146px, 1fr));
+    gap: 1px; background: var(--rule); border: 1px solid var(--rule);
+    margin: 26px 0 0;
+  }
+  .fig { background: var(--surface); padding: 16px 16px 14px; }
+  .fig-v {
+    font-family: var(--f-display); font-weight: 700;
+    font-size: 27px; letter-spacing: -0.03em; font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+  }
+  .fig-v span { font-size: 15px; font-weight: 600; color: var(--muted); letter-spacing: 0; }
+  .fig-k {
+    font-family: var(--f-mono); font-size: 10.5px; letter-spacing: 0.09em;
+    text-transform: uppercase; color: var(--muted); margin-top: 6px;
+  }
+
+  /* ----------------------------------------------------------- diagram */
+  figure { margin: 26px 0 0; }
+  svg { display: block; width: 100%; height: auto; }
+  .svg-frame {
+    border: 1px solid var(--rule); background: var(--surface); padding: 14px;
+    overflow-x: auto;
+  }
+
+  /* ------------------------------------------------------------ layers */
+  .flow { display: flex; flex-direction: column; gap: 0; margin: 24px 0 0; }
+  .flow-step {
+    display: grid; grid-template-columns: 30px 1fr; gap: 14px;
+    padding: 13px 0; border-top: 1px dashed var(--rule);
+    font-size: 15px;
+  }
+  .flow-step:last-child { border-bottom: 1px dashed var(--rule); }
+  .flow-n {
+    font-family: var(--f-mono); font-size: 11.5px; color: var(--accent);
+    font-weight: 600; padding-top: 4px;
+  }
+  .flow-step b { font-weight: 600; }
+  .flow-step em { font-style: normal; font-family: var(--f-mono); font-size: 13px; color: var(--muted); }
+
+  /* ------------------------------------------------------------ verdict */
+  .verdict { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 26px; margin-top: 22px; }
+  .verdict h3 { margin-top: 0; display: flex; align-items: center; gap: 8px; }
+  .verdict ul { margin: 0; padding-left: 17px; font-size: 15px; }
+  .verdict li { margin-bottom: 9px; }
+  .tick { color: var(--ok); }
+  .cross { color: var(--amber); }
+
+  pre.term {
+    font-family: var(--f-mono); font-size: 12.5px; line-height: 1.65;
+    background: var(--sunken); border: 1px solid var(--rule);
+    padding: 14px 16px; overflow-x: auto; margin: 22px 0 0;
+    color: var(--ink);
+  }
+  pre.term .c { color: var(--muted); }
+  pre.term .k { color: var(--accent); }
+
+  footer {
+    padding: 34px 0 60px;
+    font-family: var(--f-mono); font-size: 12px; color: var(--muted);
+    line-height: 1.7;
+  }
+
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  @media (prefers-reduced-motion: no-preference) {
+    .phase, .fig { transition: background 160ms ease; }
+  }
+  @media (max-width: 620px) {
+    .phase { grid-template-columns: 44px 1fr; gap: 0 12px; }
+    .hero { padding: 36px 0 30px; }
+  }
+</style>
+
+<header class="mast">
+  <div class="mast-inner">
+    <div class="logo"><span class="mark">ANN</span>Annex</div>
+    <div class="mast-spacer"></div>
+    <div class="mast-sub">vector search engine &middot; python 3.10+ &middot; apache-2.0</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="col">
+      <h1>A vector database engine, built from the byte layout up.</h1>
+      <p class="lede">
+        Annex is an embedded, transactional, vector-native search engine written from
+        scratch in Python. No FAISS, no hnswlib, no SQLite &mdash; <strong>NumPy is the only
+        runtime dependency.</strong> Every layer a production vector database actually needs is
+        implemented here and measured: the graph index, the compression, the write-ahead
+        log, the snapshot isolation, the lexical index, the query planner, the consensus
+        protocol.
+      </p>
+      <div class="statusline">
+        <span class="chip live"><span class="dot"></span>Phase 5 of 8 &middot; in progress</span>
+        <span class="chip">186 tests passing</span>
+        <span class="chip">89% coverage</span>
+        <span class="chip">mypy + ruff clean</span>
+        <span class="chip">4,764 lines of engine</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ WHAT -->
+  <section>
+    <div class="col">
+      <p class="eyebrow">01 &nbsp;The problem</p>
+      <h2>Vector databases are shipped as black boxes</h2>
+      <p>
+        You call <code>add()</code> and <code>query()</code>, you get results back, and you
+        have no way to answer the questions that actually decide whether a retrieval system
+        works: <em>why</em> did the engine pick those neighbours, what did it skip, how much
+        recall did the filter cost you, and what would a different index have returned for
+        the same query last Tuesday.
+      </p>
+      <p>
+        Annex is built on the opposite premise. Every mechanism is explicit, readable and
+        inspectable &mdash; and the two things black boxes hide most are surfaced as
+        first-class API: <strong>the query plan is returned with every result</strong>, and
+        <strong>a snapshot is a value you can hold</strong>, so "what would this query have
+        returned before last week's re-index?" is a question the engine can answer.
+      </p>
+    </div>
+
+    <pre class="term"><span class="c"># the query plan comes back with the results, like EXPLAIN in a relational database</span>
+&gt;&gt;&gt; papers.search(q, k=10, filter={"venue": "NeurIPS"}).plan
+{<span class="k">'strategy'</span>: <span class="k">'exact_scan'</span>,   <span class="c"># ... not the graph. here is why:</span>
+ <span class="k">'live'</span>: 1200,               <span class="c"># 1,200 live vectors</span>
+ <span class="k">'selectivity'</span>: 0.1,        <span class="c"># the filter keeps ~10% of them</span>
+ <span class="k">'estimated_survivors'</span>: 120,
+ <span class="k">'scan_cost'</span>: 10.0,          <span class="c"># cost in distance-computation equivalents</span>
+ <span class="k">'graph_cost'</span>: 1030.4,       <span class="c"># the graph would reject most nodes it visits</span>
+ <span class="k">'reason'</span>: <span class="k">'selective filter makes a pre-filtered scan cheaper'</span>}</pre>
+  </section>
+
+  <!-- ======================================================= HOW IT WORKS -->
+  <section>
+    <div class="col">
+      <p class="eyebrow">02 &nbsp;How it works</p>
+      <h2>Six layers, one address space</h2>
+      <p>
+        The design decision that holds the whole engine together is small and boring:
+        <strong>every document version gets a dense integer key.</strong> The graph, the
+        inverted index, the version table and the storage engine all address that same
+        integer, so nothing on the hot path does string hashing or dictionary lookups, and
+        a filter predicate is cheap enough to evaluate <em>inside</em> the graph traversal
+        rather than after it.
+      </p>
+    </div>
+
+    <figure class="svg-frame">
+      <svg viewBox="0 0 900 420" role="img" aria-label="Architecture diagram: client calls reach the Collection, which consults the query planner, which dispatches to the exact scan, the HNSW graph or the BM25 index, fused by reciprocal rank fusion; all writes go through MVCC into the LSM store of write-ahead log and segments.">
+        <defs>
+          <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--rule-hard)"></path>
+          </marker>
+        </defs>
+        <g font-family="IBM Plex Mono, monospace" font-size="12.5">
+
+          <!-- client -->
+          <rect x="24" y="16" width="180" height="42" rx="2" fill="none" stroke="var(--rule-hard)"></rect>
+          <text x="114" y="42" fill="var(--ink)" text-anchor="middle">python / http / cli</text>
+
+          <!-- collection band -->
+          <rect x="24" y="84" width="852" height="196" rx="2" fill="var(--accent-soft)" stroke="var(--accent)"></rect>
+          <text x="40" y="106" fill="var(--accent)" font-weight="600" font-size="11.5" letter-spacing="1.4">COLLECTION</text>
+
+          <!-- planner -->
+          <rect x="40" y="120" width="200" height="46" rx="2" fill="var(--surface)" stroke="var(--rule-hard)"></rect>
+          <text x="140" y="142" fill="var(--ink)" text-anchor="middle">query planner</text>
+          <text x="140" y="157" fill="var(--muted)" font-size="10.5" text-anchor="middle">cost model &middot; EXPLAIN</text>
+
+          <!-- three engines -->
+          <rect x="288" y="120" width="176" height="46" rx="2" fill="var(--surface)" stroke="var(--rule-hard)"></rect>
+          <text x="376" y="142" fill="var(--ink)" text-anchor="middle">exact scan</text>
+          <text x="376" y="157" fill="var(--muted)" font-size="10.5" text-anchor="middle">vectorised, exact</text>
+
+          <rect x="480" y="120" width="176" height="46" rx="2" fill="var(--surface)" stroke="var(--rule-hard)"></rect>
+          <text x="568" y="142" fill="var(--ink)" text-anchor="middle">HNSW graph</text>
+          <text x="568" y="157" fill="var(--muted)" font-size="10.5" text-anchor="middle">O(log N) hops</text>
+
+          <rect x="672" y="120" width="188" height="46" rx="2" fill="var(--surface)" stroke="var(--rule-hard)"></rect>
+          <text x="766" y="142" fill="var(--ink)" text-anchor="middle">BM25 inverted index</text>
+          <text x="766" y="157" fill="var(--muted)" font-size="10.5" text-anchor="middle">lexical, incremental</text>
+
+          <!-- planner arrows -->
+          <path d="M 240 143 L 282 143" stroke="var(--rule-hard)" fill="none" marker-end="url(#arw)"></path>
+          <path d="M 240 143 L 262 143 L 262 108 L 568 108 L 568 116" stroke="var(--rule-hard)" fill="none" marker-end="url(#arw)"></path>
+          <path d="M 240 143 L 262 143 L 262 100 L 766 100 L 766 116" stroke="var(--rule-hard)" fill="none" marker-end="url(#arw)"></path>
+
+          <!-- fusion -->
+          <rect x="288" y="192" width="572" height="40" rx="2" fill="var(--surface)" stroke="var(--rule-hard)"></rect>
+          <text x="574" y="217" fill="var(--ink)" text-anchor="middle">reciprocal rank fusion &nbsp;&mdash;&nbsp; ranks, not scores</text>
+          <path d="M 376 166 L 376 188" stroke="var(--rule-hard)" fill="none" marker-end="url(#arw)"></path>
+          <path d="M 568 166 L 568 188" stroke="var(--rule-hard)" fill="none" marker-end="url(#arw)"></path>
+          <path d="M 766 166 L 766 188" stroke="var(--rule-hard)" fill="none" marker-end="url(#arw)"></path>
+
+          <!-- mvcc -->
+          <rect x="40" y="192" width="200" height="40" rx="2" fill="var(--surface)" stroke="var(--rule-hard)"></rect>
+          <text x="140" y="211" fill="var(--ink)" text-anchor="middle">MVCC versions</text>
+          <text x="140" y="225" fill="var(--muted)" font-size="10.5" text-anchor="middle">born &le; snapshot &lt; dead</text>
+
+          <text x="40" y="262" fill="var(--muted)" font-size="11">dense integer keys are shared by the graph, the inverted index and the version table</text>
+
+          <!-- storage -->
+          <rect x="24" y="306" width="852" height="92" rx="2" fill="var(--surface)" stroke="var(--rule-hard)"></rect>
+          <text x="40" y="328" fill="var(--muted)" font-weight="600" font-size="11.5" letter-spacing="1.4">LSM STORE</text>
+          <rect x="40" y="340" width="176" height="40" rx="2" fill="var(--sunken)" stroke="var(--rule)"></rect>
+          <text x="128" y="365" fill="var(--ink)" text-anchor="middle">write-ahead log</text>
+          <rect x="256" y="340" width="176" height="40" rx="2" fill="var(--sunken)" stroke="var(--rule)"></rect>
+          <text x="344" y="365" fill="var(--ink)" text-anchor="middle">memtable</text>
+          <rect x="472" y="340" width="176" height="40" rx="2" fill="var(--sunken)" stroke="var(--rule)"></rect>
+          <text x="560" y="365" fill="var(--ink)" text-anchor="middle">segments</text>
+          <rect x="688" y="340" width="172" height="40" rx="2" fill="var(--sunken)" stroke="var(--rule)"></rect>
+          <text x="774" y="365" fill="var(--ink)" text-anchor="middle">compaction</text>
+          <path d="M 216 360 L 250 360" stroke="var(--rule-hard)" fill="none" marker-end="url(#arw)"></path>
+          <path d="M 432 360 L 466 360" stroke="var(--rule-hard)" fill="none" marker-end="url(#arw)"></path>
+          <path d="M 648 360 L 682 360" stroke="var(--rule-hard)" fill="none" marker-end="url(#arw)"></path>
+
+          <path d="M 114 58 L 114 80" stroke="var(--rule-hard)" fill="none" marker-end="url(#arw)"></path>
+          <path d="M 140 232 L 140 302" stroke="var(--rule-hard)" fill="none" marker-end="url(#arw)"></path>
+          <text x="152" y="272" fill="var(--muted)" font-size="10.5">durable before acknowledged</text>
+        </g>
+      </svg>
+    </figure>
+    <p class="caption">Read path flows left to right through the planner; the write path drops straight down into the log. A crash between any two boxes recovers to the last acknowledged write.</p>
+
+    <div class="col">
+      <h3>What one <code>search()</code> call actually does</h3>
+    </div>
+    <div class="flow col">
+      <div class="flow-step"><span class="flow-n">1</span><div><b>Compile the filter.</b> <em>{"year": {"$gte": 2020}}</em> becomes a Python closure plus a selectivity estimate &mdash; compiled once, then called per candidate.</div></div>
+      <div class="flow-step"><span class="flow-n">2</span><div><b>Plan.</b> The planner costs an exact scan against a graph traversal in distance-computation equivalents and picks one. Below ~2,000 live vectors, or under a selective filter, the scan wins &mdash; and the measurements below say it is right.</div></div>
+      <div class="flow-step"><span class="flow-n">3</span><div><b>Traverse.</b> Greedy descent through the upper graph layers, then a beam search of width <em>ef</em> on layer 0. Every expansion evaluates all unvisited neighbours in one vectorised call.</div></div>
+      <div class="flow-step"><span class="flow-n">4</span><div><b>Apply visibility.</b> A candidate enters the result heap only if <em>born &le; snapshot &lt; dead</em> and the filter passes. Rejected nodes are still traversed, so the graph never fragments under a selective filter.</div></div>
+      <div class="flow-step"><span class="flow-n">5</span><div><b>Retrieve lexically.</b> If a query string was supplied, BM25 runs over the same keys with the same visibility predicate.</div></div>
+      <div class="flow-step"><span class="flow-n">6</span><div><b>Fuse.</b> Cosine and BM25 live on incomparable scales, so Annex fuses <em>ranks</em>: RRF(d) = &sum; w / (60 + rank). No calibration, and it degrades gracefully when one retriever returns nothing.</div></div>
+      <div class="flow-step"><span class="flow-n">7</span><div><b>Return the plan with the hits.</b> Strategy, costs, selectivity, candidates scanned, and a sentence of English explaining the choice.</div></div>
+    </div>
+  </section>
+
+  <!-- =========================================================== PHASES -->
+  <section>
+    <div class="col">
+      <p class="eyebrow">03 &nbsp;Build plan</p>
+      <h2>Eight phases. Five complete, one underway.</h2>
+      <p>
+        The phases are ordered by dependency, not convenience: nothing above a layer was
+        started before the layer below it had tests. Each phase closed only when its
+        behaviour was covered by executable tests &mdash; a "correctness claim" that is a
+        comment rather than an assertion does not count as done.
+      </p>
+    </div>
+
+    <div class="phases">
+      <div class="phase done">
+        <div class="phase-no">P0</div>
+        <div>
+          <div class="phase-head">
+            <span class="phase-title">Design &amp; scope</span>
+            <span class="phase-state s-done">Complete</span>
+          </div>
+          <p>Pick the layers, the guarantees and the honest non-goals. Decide the load-bearing invariant: dense integer keys shared across every subsystem.</p>
+          <div class="phase-meta">artefact: docs/ARCHITECTURE.md &middot; docs/ALGORITHMS.md</div>
+        </div>
+      </div>
+
+      <div class="phase done">
+        <div class="phase-no">P1</div>
+        <div>
+          <div class="phase-head">
+            <span class="phase-title">Storage core</span>
+            <span class="phase-state s-done">Complete</span>
+          </div>
+          <ul>
+            <li><b>Write-ahead log</b> with CRC32-framed records and torn-tail truncation</li>
+            <li><b>Immutable segments</b> written to a temp path and atomically renamed</li>
+            <li><b>LSM store</b>: memtable, flush, full compaction, manifest, recovery</li>
+          </ul>
+          <div class="phase-meta">15 tests &middot; a bit-flip anywhere in a frame header or payload is detected, not survived</div>
+        </div>
+      </div>
+
+      <div class="phase done">
+        <div class="phase-no">P2</div>
+        <div>
+          <div class="phase-head">
+            <span class="phase-title">Vector indexes</span>
+            <span class="phase-state s-done">Complete</span>
+          </div>
+          <ul>
+            <li><b>HNSW</b> with exponential level assignment, the Algorithm-4 neighbour heuristic, bidirectional pruning, tombstoned deletes, filtered traversal</li>
+            <li><b>Product quantisation</b>: k-means++ codebooks, asymmetric and symmetric distance computation, exact reranking</li>
+            <li><b>Vector spaces</b> &mdash; the abstraction that lets one graph implementation run over float32 <em>or</em> over 32&times;-compressed codes</li>
+          </ul>
+          <div class="phase-meta">22 tests &middot; recall measured against exact brute-force ground truth, not asserted</div>
+        </div>
+      </div>
+
+      <div class="phase done">
+        <div class="phase-no">P3</div>
+        <div>
+          <div class="phase-head">
+            <span class="phase-title">Query &amp; concurrency</span>
+            <span class="phase-state s-done">Complete</span>
+          </div>
+          <ul>
+            <li><b>MVCC</b> versions, snapshot reads, horizon-based vacuum</li>
+            <li><b>Transactions</b>: buffered, atomic, first-committer-wins conflict detection</li>
+            <li><b>Filter DSL</b> compiled to closures &middot; <b>BM25</b> &middot; <b>RRF</b> &middot; <b>cost-based planner</b></li>
+          </ul>
+          <div class="phase-meta">63 tests &middot; readers never block writers; an open snapshot blocks vacuum, and the test proves it</div>
+        </div>
+      </div>
+
+      <div class="phase done">
+        <div class="phase-no">P4</div>
+        <div>
+          <div class="phase-head">
+            <span class="phase-title">Surfaces &amp; measurement</span>
+            <span class="phase-state s-done">Complete</span>
+          </div>
+          <ul>
+            <li><b>HTTP API</b> (FastAPI): collections, documents, search, maintenance, bearer auth, request IDs, OpenAPI</li>
+            <li><b>CLI</b>, <b>Dockerfile</b>, <b>CI</b> across Python 3.10&ndash;3.12</li>
+            <li><b>Benchmark harness</b>: recall@k against exact truth, p50/p95/p99, throughput, memory</li>
+          </ul>
+          <div class="phase-meta">15 API tests &middot; two runnable examples &middot; numbers in the next section come from this harness</div>
+        </div>
+      </div>
+
+      <div class="phase now">
+        <div class="phase-no">P5</div>
+        <div>
+          <div class="phase-head">
+            <span class="phase-title">Distribution</span>
+            <span class="phase-state s-now">In progress</span>
+          </div>
+          <p>
+            The consensus core is done and, unusually, <strong>deterministic</strong>: the Raft
+            node has no threads and no clock of its own, so a five-node cluster with a network
+            partition is an ordinary unit test rather than a flaky integration suite.
+          </p>
+          <ul>
+            <li><b>Done</b> &mdash; leader election, log matching with back-off hints, the leader-completeness commit rule, a virtual-network simulator with latency/loss/partitions, and a collection bound as the replicated state machine</li>
+            <li><b>Remaining</b> &mdash; the live HTTP transport, snapshot install for a lagging follower, and cluster membership changes</li>
+          </ul>
+          <div class="phase-meta">17 tests &middot; verified: minority partitions cannot commit, and logs reconverge byte-for-byte after healing</div>
+        </div>
+      </div>
+
+      <div class="phase next">
+        <div class="phase-no">P6</div>
+        <div>
+          <div class="phase-head">
+            <span class="phase-title">Performance</span>
+            <span class="phase-state s-next">Next</span>
+          </div>
+          <ul>
+            <li>Native (Rust/Cython + SIMD) kernels for the layer-0 beam search and graph construction &mdash; the structure stays, only the inner loop moves</li>
+            <li><code>mmap</code>-backed segments, so startup is O(1) and a collection can exceed RAM</li>
+            <li>Filter-aware graph entry points from per-field posting lists</li>
+            <li>Histogram statistics to replace the planner's fixed selectivity prior</li>
+          </ul>
+          <div class="phase-meta">target: 20&ndash;50&times; on query latency &middot; build time is the bigger gap today</div>
+        </div>
+      </div>
+
+      <div class="phase next">
+        <div class="phase-no">P7</div>
+        <div>
+          <div class="phase-head">
+            <span class="phase-title">Productisation</span>
+            <span class="phase-state s-next">Future</span>
+          </div>
+          <ul>
+            <li>Multi-tenancy, usage metering, embedding ingestion pipelines</li>
+            <li>A reproducible retrieval-evaluation surface built on snapshots &mdash; "which index configuration would have answered last week's queries better?" is a question most vector databases cannot answer at all</li>
+            <li>Compliance-grade deletes: tombstones plus scheduled full compaction, with an audit trail</li>
+          </ul>
+          <div class="phase-meta">the commercial thesis, stated as engineering work rather than a pitch</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================== NUMBERS -->
+  <section>
+    <div class="col">
+      <p class="eyebrow">04 &nbsp;How good is it</p>
+      <h2>Measured, not asserted</h2>
+      <p>
+        Every number below comes from <code>make bench</code> on 20,000 clustered
+        128-dimensional vectors, 200 queries, <em>k</em> = 10, single-threaded, with recall
+        scored against exact brute-force ground truth on the same data. Queries are drawn
+        near existing points, and the corpus is a mixture of Gaussians rather than uniform
+        noise &mdash; uniform vectors flatter a graph index and real embeddings are clustered.
+      </p>
+    </div>
+
+    <div class="strip">
+      <table>
+        <thead>
+          <tr>
+            <th>Configuration</th>
+            <th class="num">recall@10</th>
+            <th class="num">queries/sec</th>
+            <th class="num">p50</th>
+            <th class="num">p95</th>
+            <th class="num">vector memory</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="name">flat (exact)</td><td class="num">1.000</td><td class="num">403</td><td class="num">2.37 ms</td><td class="num">2.70 ms</td><td class="num">10.2 MB</td></tr>
+          <tr class="highlight"><td class="name">hnsw ef=32</td><td class="num">0.977</td><td class="num">1308</td><td class="num">0.77 ms</td><td class="num">1.02 ms</td><td class="num">10.2 MB</td></tr>
+          <tr><td class="name">hnsw ef=64</td><td class="num">0.987</td><td class="num">979</td><td class="num">1.00 ms</td><td class="num">1.24 ms</td><td class="num">10.2 MB</td></tr>
+          <tr><td class="name">hnsw ef=128</td><td class="num">0.994</td><td class="num">499</td><td class="num">1.90 ms</td><td class="num">2.54 ms</td><td class="num">10.2 MB</td></tr>
+          <tr><td class="name">hnsw ef=256</td><td class="num">0.997</td><td class="num">274</td><td class="num">3.64 ms</td><td class="num">4.07 ms</td><td class="num">10.2 MB</td></tr>
+          <tr><td class="name">hnsw+pq, reranked</td><td class="num">0.986</td><td class="num">131</td><td class="num">7.54 ms</td><td class="num">8.49 ms</td><td class="num">10.9 MB</td></tr>
+          <tr><td class="name">hnsw+pq, codes only</td><td class="num">0.636</td><td class="num">114</td><td class="num">8.64 ms</td><td class="num">10.44 ms</td><td class="num">0.6 MB</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="caption">n = 20,000 &middot; dim = 128 &middot; k = 10 &middot; cosine &middot; one thread &middot; Python 3.11 + NumPy &middot; raw output committed at benchmarks/results-n20000-d128.json</p>
+
+    <figure class="svg-frame">
+      <svg viewBox="0 0 760 400" role="img" aria-label="Scatter plot of recall at 10 against queries per second. The exact flat scan sits at recall 1.000 and 403 queries per second. HNSW at ef=256 reaches 0.997 recall at 274 queries per second, ef=128 reaches 0.994 at 499, ef=64 reaches 0.987 at 979, and ef=32 reaches 0.977 at 1308 queries per second.">
+        <g font-family="IBM Plex Mono, monospace" font-size="11">
+          <!-- axes -->
+          <line x1="70" y1="40" x2="70" y2="320" stroke="var(--rule-hard)"></line>
+          <line x1="70" y1="320" x2="700" y2="320" stroke="var(--rule-hard)"></line>
+
+          <!-- y grid + labels : recall 0.970 .. 1.000 -->
+          <line x1="70" y1="40"  x2="700" y2="40"  stroke="var(--rule)" stroke-dasharray="3 4"></line>
+          <line x1="70" y1="133" x2="700" y2="133" stroke="var(--rule)" stroke-dasharray="3 4"></line>
+          <line x1="70" y1="227" x2="700" y2="227" stroke="var(--rule)" stroke-dasharray="3 4"></line>
+          <text x="60" y="44"  fill="var(--muted)" text-anchor="end">1.000</text>
+          <text x="60" y="137" fill="var(--muted)" text-anchor="end">0.990</text>
+          <text x="60" y="231" fill="var(--muted)" text-anchor="end">0.980</text>
+          <text x="60" y="324" fill="var(--muted)" text-anchor="end">0.970</text>
+          <text x="22" y="184" fill="var(--muted)" transform="rotate(-90 22 184)" text-anchor="middle">recall@10</text>
+
+          <!-- x labels : 0 .. 1400 qps -->
+          <text x="70"  y="342" fill="var(--muted)" text-anchor="middle">0</text>
+          <text x="291" y="342" fill="var(--muted)" text-anchor="middle">500</text>
+          <text x="513" y="342" fill="var(--muted)" text-anchor="middle">1000</text>
+          <text x="690" y="342" fill="var(--muted)" text-anchor="middle">1400</text>
+          <text x="385" y="366" fill="var(--muted)" text-anchor="middle">queries per second (single thread, higher is better)</text>
+
+          <!-- pareto line through the four hnsw points -->
+          <polyline points="191,68 291,96 503,161 649,255" fill="none" stroke="var(--accent)" stroke-width="1.5"></polyline>
+
+          <!-- hnsw points -->
+          <circle cx="191" cy="68"  r="5" fill="var(--accent)"></circle>
+          <circle cx="291" cy="96"  r="5" fill="var(--accent)"></circle>
+          <circle cx="503" cy="161" r="5" fill="var(--accent)"></circle>
+          <circle cx="649" cy="255" r="6.5" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"></circle>
+
+          <text x="203" y="64"  fill="var(--ink)">ef=256</text>
+          <text x="303" y="92"  fill="var(--ink)">ef=128</text>
+          <text x="515" y="157" fill="var(--ink)">ef=64</text>
+          <text x="641" y="277" fill="var(--ink)" text-anchor="middle">ef=32</text>
+
+          <!-- flat baseline -->
+          <rect x="243" y="35" width="11" height="11" fill="var(--amber)"></rect>
+          <text x="262" y="45" fill="var(--amber)">flat (exact) flat &mdash; exact, 403 q/smdash; 403 q/s</text>
+
+          <!-- annotation -->
+          <text x="360" y="300" fill="var(--muted)">3.2&times; the throughput of an exact scan</text>
+          <text x="360" y="315" fill="var(--muted)">at 97.7% of its recall</text>
+          <path d="M 520 296 L 610 262" stroke="var(--rule-hard)" fill="none"></path>
+        </g>
+      </svg>
+    </figure>
+    <p class="caption">The y-axis is zoomed to 0.970&ndash;1.000 so the four HNSW settings are separable; the compressed-codes configuration (0.636) sits far below this window and is in the table above.</p>
+
+    <div class="col">
+      <h3>Three results worth reading twice</h3>
+      <p>
+        <strong>1. <code>ef</code> is a clean, monotone dial.</strong> Going from 0.977 to
+        0.997 recall costs 4.8&times; the latency, and recall saturates long before latency
+        does. That is why <code>ef</code> is exposed per query, not just per collection: a
+        "find me anything relevant" query and a "this had better be exhaustive" query should
+        not pay the same price.
+      </p>
+      <p>
+        <strong>2. The exact scan really does win on small collections.</strong> At n = 4,000
+        the flat scan runs at 2,751 q/s against the graph's 2,025 &mdash; both at perfect
+        recall. A single BLAS-backed pass beats a Python graph walk until the corpus is big
+        enough to amortise the traversal. This is the entire justification for the query
+        planner, and it is why <code>small_collection_threshold</code> defaults to 2,000
+        rather than to zero.
+      </p>
+      <p>
+        <strong>3. Product quantisation is a memory trade, and the page says so.</strong>
+        Codes alone shrink the vector store 17&times; &mdash; 10.2 MB to 0.6 MB &mdash; and
+        cost recall down to 0.636. Keeping the originals for the rerank stage restores 0.986.
+        Sub-space granularity dominates: moving from 8 sub-vectors to 32 took recall from
+        0.61 to 0.97 at effectively the same memory.
+      </p>
+    </div>
+
+    <figure class="svg-frame">
+      <svg viewBox="0 0 760 180" role="img" aria-label="Bar chart of vector memory for 20,000 vectors of 128 dimensions: full precision float32 uses 10.2 megabytes, product-quantised codes use 0.6 megabytes, a 17-fold reduction.">
+        <g font-family="IBM Plex Mono, monospace" font-size="12">
+          <text x="16" y="26" fill="var(--muted)" font-size="11" letter-spacing="1.2">VECTOR MEMORY &mdash; 20,000 &times; 128 DIMENSIONS</text>
+
+          <text x="16" y="72" fill="var(--ink)">float32</text>
+          <rect x="120" y="58" width="560" height="20" fill="var(--accent)"></rect>
+          <text x="690" y="73" fill="var(--ink)">10.2 MB</text>
+          <text x="120" y="94" fill="var(--muted)" font-size="10.5">recall 1.000 &mdash; exact</text>
+
+          <text x="16" y="134" fill="var(--ink)">pq codes</text>
+          <rect x="120" y="120" width="33" height="20" fill="var(--amber)"></rect>
+          <text x="163" y="135" fill="var(--ink)">0.6 MB</text>
+          <text x="120" y="156" fill="var(--muted)" font-size="10.5">recall 0.636 alone &middot; 0.986 with exact reranking</text>
+        </g>
+      </svg>
+    </figure>
+  </section>
+
+  <!-- ========================================================= ENG STATS -->
+  <section>
+    <div class="col">
+      <p class="eyebrow">05 &nbsp;Engineering quality</p>
+      <h2>The tests are the specification</h2>
+      <p>
+        Correctness claims in this project are executable. "HNSW recall is high" is a test
+        that measures recall against exact ground truth. "A torn write cannot corrupt the
+        database" is a test that appends garbage to a live WAL and reopens it. "A minority
+        partition cannot commit" is a test that partitions a simulated five-node cluster.
+      </p>
+    </div>
+
+    <div class="figures">
+      <div class="fig"><div class="fig-v">186</div><div class="fig-k">tests passing</div></div>
+      <div class="fig"><div class="fig-v">89<span>%</span></div><div class="fig-k">line coverage</div></div>
+      <div class="fig"><div class="fig-v">0</div><div class="fig-k">mypy errors</div></div>
+      <div class="fig"><div class="fig-v">0</div><div class="fig-k">ruff violations</div></div>
+      <div class="fig"><div class="fig-v">4,764</div><div class="fig-k">lines of engine</div></div>
+      <div class="fig"><div class="fig-v">1,607</div><div class="fig-k">lines of tests</div></div>
+      <div class="fig"><div class="fig-v">1</div><div class="fig-k">runtime dependency</div></div>
+      <div class="fig"><div class="fig-v">40</div><div class="fig-k">modules, 6 layers</div></div>
+    </div>
+    <p class="caption">Coverage is enforced at 80% in CI and currently sits at 89%. mypy runs in strict-enough mode that <code>Any</code> cannot be used to silence a real type error, and it is a hard CI gate, not advisory.</p>
+
+    <div class="col">
+      <h3>What is guaranteed, and what is not</h3>
+    </div>
+    <div class="verdict col">
+      <div>
+        <h3><span class="tick">&#10003;</span> Guaranteed</h3>
+        <ul>
+          <li>An acknowledged write is in the log before it returns; a crash recovers to exactly that point.</li>
+          <li>A torn or bit-flipped frame is detected by CRC and truncated, never silently applied.</li>
+          <li>Readers never block writers; a snapshot sees a consistent point in time.</li>
+          <li><code>flat</code> results are exact; HNSW recall is tunable and measured, not assumed.</li>
+          <li>Committed entries survive leader changes &mdash; the commit rule is implemented, not approximated.</li>
+        </ul>
+      </div>
+      <div>
+        <h3><span class="cross">&#9679;</span> Not claimed</h3>
+        <ul>
+          <li>This is pure Python and NumPy. Throughput sits one to two orders of magnitude below a SIMD C++ engine &mdash; the design is the artefact, not the constant factor.</li>
+          <li>Index build is the weak spot: 121 s for 20,000 inserts, because the neighbour heuristic runs per insert in Python. Phase 6 addresses exactly this.</li>
+          <li>Raft is implemented and deterministically simulated; the live multi-process transport is Phase 5's remaining work.</li>
+          <li>One writer per collection. Concurrent <em>readers</em> scale freely.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ NEXT -->
+  <section style="border-bottom:none;">
+    <div class="col">
+      <p class="eyebrow">06 &nbsp;Immediately next</p>
+      <h2>Finishing Phase 5</h2>
+      <p>
+        Three pieces close distribution: an HTTP transport that carries the same
+        <code>AppendEntries</code> and <code>RequestVote</code> messages the simulator already
+        exercises; <code>InstallSnapshot</code>, so a follower that has fallen further behind
+        than the retained log can be caught up with a segment file instead of a replay; and
+        joint-consensus membership changes so nodes can be added without downtime.
+      </p>
+      <p>
+        Because the consensus core is a pure state machine, none of that work can change the
+        protocol's behaviour &mdash; the transport moves bytes and the tested logic stays
+        exactly as it is. That separation was the point of building it this way.
+      </p>
+    </div>
+    <pre class="term"><span class="c"># reproduce every number on this page</span>
+git clone https://github.com/nikhlgoel/pythonPJ &amp;&amp; cd pythonPJ
+make install
+make test        <span class="c"># 186 tests</span>
+make bench       <span class="c"># the table in section 04</span>
+python examples/replicated_cluster.py   <span class="c"># elect, replicate, partition, heal</span></pre>
+  </section>
+
+  <footer>
+    Annex &middot; embedded vector search engine &middot; Apache-2.0<br>
+    Documentation: ARCHITECTURE.md &middot; ALGORITHMS.md &middot; STORAGE.md &middot; BENCHMARKS.md &middot; ROADMAP.md<br>
+    Benchmarks measured on one container vCPU, Python 3.11, NumPy 2.4 &mdash; treat them as relative comparisons between strategies.
+  </footer>
+
+</div>

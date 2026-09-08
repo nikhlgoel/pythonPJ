@@ -139,6 +139,7 @@ exact scan beats the graph outright — which is why the planner exists.
 * [`docs/ALGORITHMS.md`](docs/ALGORITHMS.md) — HNSW, PQ, BM25, RRF and the planner cost model, with the maths
 * [`docs/STORAGE.md`](docs/STORAGE.md) — file formats, durability and recovery guarantees
 * [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md) — how to reproduce the numbers
+* [`docs/annex-project-page.html`](docs/annex-project-page.html) — project build sheet: phases, current status, measured results
 * [`docs/ROADMAP.md`](docs/ROADMAP.md) — what a production/commercial version needs next
 
 ## Guarantees (and honest limits)
