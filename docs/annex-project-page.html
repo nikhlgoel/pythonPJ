@@ -313,11 +313,11 @@
         protocol.
       </p>
       <div class="statusline">
-        <span class="chip live"><span class="dot"></span>Phase 5 of 8 &middot; in progress</span>
-        <span class="chip">186 tests passing</span>
-        <span class="chip">89% coverage</span>
+        <span class="chip live"><span class="dot"></span>Phase 6 of 8 &middot; in progress</span>
+        <span class="chip">211 tests passing</span>
+        <span class="chip">90% coverage</span>
         <span class="chip">mypy + ruff clean</span>
-        <span class="chip">4,764 lines of engine</span>
+        <span class="chip">5,362 lines of engine</span>
       </div>
     </div>
   </div>
@@ -464,7 +464,7 @@
   <section>
     <div class="col">
       <p class="eyebrow">03 &nbsp;Build plan</p>
-      <h2>Eight phases. Five complete, one underway.</h2>
+      <h2>Eight phases. Six complete, one underway.</h2>
       <p>
         The phases are ordered by dependency, not convenience: nothing above a layer was
         started before the layer below it had tests. Each phase closed only when its
@@ -550,32 +550,36 @@
         </div>
       </div>
 
-      <div class="phase now">
+      <div class="phase done">
         <div class="phase-no">P5</div>
         <div>
           <div class="phase-head">
             <span class="phase-title">Distribution</span>
-            <span class="phase-state s-now">In progress</span>
+            <span class="phase-state s-done">Complete</span>
           </div>
           <p>
-            The consensus core is done and, unusually, <strong>deterministic</strong>: the Raft
-            node has no threads and no clock of its own, so a five-node cluster with a network
-            partition is an ordinary unit test rather than a flaky integration suite.
+            The consensus core is, unusually, <strong>deterministic</strong>: the Raft node has
+            no threads and no clock of its own, so a five-node cluster with a network partition
+            is an ordinary unit test rather than a flaky integration suite. The transport was
+            then bolted on <em>without touching the protocol</em> &mdash; which was the point of
+            building it that way.
           </p>
           <ul>
-            <li><b>Done</b> &mdash; leader election, log matching with back-off hints, the leader-completeness commit rule, a virtual-network simulator with latency/loss/partitions, and a collection bound as the replicated state machine</li>
-            <li><b>Remaining</b> &mdash; the live HTTP transport, snapshot install for a lagging follower, and cluster membership changes</li>
+            <li><b>Consensus</b> &mdash; leader election, log matching with back-off hints, the leader-completeness commit rule</li>
+            <li><b>Log compaction</b> &mdash; <code>InstallSnapshot</code> catches up a follower that has fallen behind the retained log; only applied entries may be folded away</li>
+            <li><b>Membership changes</b> &mdash; one server at a time, adopted on append, so old and new majorities always overlap</li>
+            <li><b>Transports</b> &mdash; a single JSON wire codec, an in-process transport, and an HTTP transport where an unreachable peer is a dropped packet rather than an exception</li>
           </ul>
-          <div class="phase-meta">17 tests &middot; verified: minority partitions cannot commit, and logs reconverge byte-for-byte after healing</div>
+          <div class="phase-meta">42 tests &middot; three real nodes over HTTP in examples/http_cluster.py &middot; verified: minority partitions cannot commit, and logs reconverge byte-for-byte after healing</div>
         </div>
       </div>
 
-      <div class="phase next">
+      <div class="phase now">
         <div class="phase-no">P6</div>
         <div>
           <div class="phase-head">
             <span class="phase-title">Performance</span>
-            <span class="phase-state s-next">Next</span>
+            <span class="phase-state s-now">In progress</span>
           </div>
           <ul>
             <li>Native (Rust/Cython + SIMD) kernels for the layer-0 beam search and graph construction &mdash; the structure stays, only the inner loop moves</li>
@@ -754,16 +758,16 @@
     </div>
 
     <div class="figures">
-      <div class="fig"><div class="fig-v">186</div><div class="fig-k">tests passing</div></div>
-      <div class="fig"><div class="fig-v">89<span>%</span></div><div class="fig-k">line coverage</div></div>
+      <div class="fig"><div class="fig-v">211</div><div class="fig-k">tests passing</div></div>
+      <div class="fig"><div class="fig-v">90<span>%</span></div><div class="fig-k">line coverage</div></div>
       <div class="fig"><div class="fig-v">0</div><div class="fig-k">mypy errors</div></div>
       <div class="fig"><div class="fig-v">0</div><div class="fig-k">ruff violations</div></div>
-      <div class="fig"><div class="fig-v">4,764</div><div class="fig-k">lines of engine</div></div>
-      <div class="fig"><div class="fig-v">1,607</div><div class="fig-k">lines of tests</div></div>
+      <div class="fig"><div class="fig-v">5,362</div><div class="fig-k">lines of engine</div></div>
+      <div class="fig"><div class="fig-v">1,962</div><div class="fig-k">lines of tests</div></div>
       <div class="fig"><div class="fig-v">1</div><div class="fig-k">runtime dependency</div></div>
-      <div class="fig"><div class="fig-v">40</div><div class="fig-k">modules, 6 layers</div></div>
+      <div class="fig"><div class="fig-v">43</div><div class="fig-k">modules, 6 layers</div></div>
     </div>
-    <p class="caption">Coverage is enforced at 80% in CI and currently sits at 89%. mypy runs in strict-enough mode that <code>Any</code> cannot be used to silence a real type error, and it is a hard CI gate, not advisory.</p>
+    <p class="caption">Coverage is enforced at 80% in CI and currently sits at 90%. mypy runs in strict-enough mode that <code>Any</code> cannot be used to silence a real type error, and it is a hard CI gate, not advisory.</p>
 
     <div class="col">
       <h3>What is guaranteed, and what is not</h3>
@@ -784,7 +788,7 @@
         <ul>
           <li>This is pure Python and NumPy. Throughput sits one to two orders of magnitude below a SIMD C++ engine &mdash; the design is the artefact, not the constant factor.</li>
           <li>Index build is the weak spot: 121 s for 20,000 inserts, because the neighbour heuristic runs per insert in Python. Phase 6 addresses exactly this.</li>
-          <li>Raft is implemented and deterministically simulated; the live multi-process transport is Phase 5's remaining work.</li>
+          <li>Raft covers election, replication, compaction and membership changes over a live HTTP transport. Pre-vote, leadership transfer and read-index leases are not implemented.</li>
           <li>One writer per collection. Concurrent <em>readers</em> scale freely.</li>
         </ul>
       </div>
@@ -814,7 +818,8 @@ git clone https://github.com/nikhlgoel/pythonPJ &amp;&amp; cd pythonPJ
 make install
 make test        <span class="c"># 186 tests</span>
 make bench       <span class="c"># the table in section 04</span>
-python examples/replicated_cluster.py   <span class="c"># elect, replicate, partition, heal</span></pre>
+python examples/replicated_cluster.py   <span class="c"># elect, replicate, partition, heal</span>
+python examples/http_cluster.py --id n1 --port 9101   <span class="c"># a real node, over HTTP</span></pre>
   </section>
 
   <footer>
